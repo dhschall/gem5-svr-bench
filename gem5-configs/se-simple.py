@@ -42,6 +42,12 @@ Usage: ./build/<ISA>/gem5.opt se-imple.py <BINARY_PATH> <ARG1> <ARG2> ...
 
 import argparse
 
+from m5.objects import (
+    LTAGE,
+    TaggedPrefetcher,
+    L2XBar,
+)
+
 from gem5.isas import ISA
 from gem5.utils.requires import requires
 from gem5.resources.resource import obtain_resource, BinaryResource
@@ -118,6 +124,44 @@ cache_hierarchy = PrivateL1PrivateL2CacheHierarchy(
 processor = SimpleProcessor(
     cpu_type=cpu_types[args.cpu_type], isa=isa_choices[args.isa], num_cores=1
 )
+
+cpu = processor.cores[-1].core
+
+
+from m5.objects import (
+    LTAGE,
+    SimpleBTB,
+    TAGE_SC_L_64KB,
+    SimpleIndirectPredictor,
+    TageSCLRef,
+)
+
+class BTB(SimpleBTB):
+    numEntries = 32*1024
+
+class BPLTage(LTAGE):
+    instShiftAmt = 0
+    requiresBTBHit = True
+    # takenOnlyHistory = True
+    btb = BTB()
+
+class BPTageSCL(TAGE_SC_L_64KB):
+    instShiftAmt = 2
+    requiresBTBHit = True
+    btb = BTB()
+
+class BPTageRef(TageSCLRef):
+    instShiftAmt = 2
+    requiresBTBHit = True
+    btb = BTB()
+
+
+# Set the branch predictor to the BPLTage
+# cpu.branchPred = BPLTage()
+cpu.branchPred = BPTageSCL()
+# cpu.branchPred.tage.histBufferSize= 6050
+# cpu.branchPred = BPTageRef()
+
 
 print(
     "Running {} on {} CPU: {}".format(
