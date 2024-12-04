@@ -60,7 +60,7 @@ source "qemu" "initialize" {
                       "<f10><wait>"
                     ]
   cpus             = "4"
-  disk_size        = "15G"
+  disk_size        = "80G"
   format           = "raw"
   headless         = "true"
   http_directory   = "http/x86"

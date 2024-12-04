@@ -61,7 +61,8 @@ autoinstall:
     - device: disk-vda
       # size: 4291821568
       # size: 16105078784
-      size: 15569256448
+      # size: 15569256448
+      size: 84830000000
       wipe: superblock
       number: 2
       preserve: false

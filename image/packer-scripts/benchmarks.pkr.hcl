@@ -93,6 +93,16 @@ build {
   }
 
 
+  ## DCPerf provisioning ------------------------------
+  provisioner "file" {
+    destination = "dcperf.patch"
+    source      = "${local.rootdir}/benchmarks/dcperf/dcperf.patch"
+  }
+
+  provisioner "shell" {
+    execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+    scripts         = ["${local.rootdir}/benchmarks/dcperf/install_dcperf.sh"]
+  }
 
   #### Shutdown the VM ###########
   provisioner "shell" {

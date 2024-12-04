@@ -1,0 +1,88 @@
+diff --git a/packages/tao_bench/install_tao_bench_aarch64.sh b/packages/tao_bench/install_tao_bench_aarch64.sh
+index f0f3ce9..beaa8ff 100755
+--- a/packages/tao_bench/install_tao_bench_aarch64.sh
++++ b/packages/tao_bench/install_tao_bench_aarch64.sh
+@@ -56,16 +56,16 @@ if ! [ -f "/usr/local/bin/cmake" ]; then
+ fi
+ 
+ # Install openssl
+-if ! [ -d "openssl" ]; then
+-    git clone --branch OpenSSL_1_1_1b --depth 1 https://github.com/openssl/openssl.git
+-    pushd openssl/
+-    ./config --prefix="${TAO_BENCH_DEPS}"
+-    make -j"$(nproc)"
+-    make install
+-    popd
+-else
+-    echo "[SKIPPED] openssl_1_1_1b"
+-fi
++#if ! [ -d "openssl" ]; then
++#    git clone --branch OpenSSL_1_1_1b --depth 1 https://github.com/openssl/openssl.git
++#    pushd openssl/
++#    ./config --prefix="${TAO_BENCH_DEPS}"
++#    make -j"$(nproc)"
++#    make install
++#    popd
++#else
++#    echo "[SKIPPED] openssl_1_1_1b"
++#fi
+ 
+ # Install libevent
+ if ! [ -d "libevent" ]; then
+@@ -169,9 +169,9 @@ cp memtier_benchmark "${TAO_BENCH_ROOT}/tao_bench_client"
+ popd # memtier_client
+ popd # $TAO_BENCH_ROOT
+ 
+-if [ "$LINUX_DIST_ID" = "ubuntu" ]; then
+-    cp build-deps/lib/libcrypto.so.1.1 /lib/aarch64-linux-gnu/
+-fi
++#if [ "$LINUX_DIST_ID" = "ubuntu" ]; then
++#    cp build-deps/lib/libcrypto.so.1.1 /lib/aarch64-linux-gnu/
++#fi
+ 
+ # Extract certificates
+ tar -zxf "${COMMON_DIR}/certs.tar.gz" -C "${TAO_BENCH_ROOT}/"
+diff --git a/packages/tao_bench/install_tao_bench_x86_64.sh b/packages/tao_bench/install_tao_bench_x86_64.sh
+index 81125ac..07d769e 100755
+--- a/packages/tao_bench/install_tao_bench_x86_64.sh
++++ b/packages/tao_bench/install_tao_bench_x86_64.sh
+@@ -52,16 +52,16 @@ if ! [ -f "/usr/local/bin/cmake" ]; then
+ fi
+ 
+ # Install openssl
+-if ! [ -d "openssl" ]; then
+-    git clone --branch OpenSSL_1_1_1b --depth 1 https://github.com/openssl/openssl.git
+-    pushd openssl/
+-    ./config --prefix="${TAO_BENCH_DEPS}"
+-    make -j"$(nproc)"
+-    make install
+-    popd
+-else
+-    echo "[SKIPPED] openssl_1_1_1b"
+-fi
++#if ! [ -d "openssl" ]; then
++#    git clone --branch OpenSSL_1_1_1b --depth 1 https://github.com/openssl/openssl.git
++#    pushd openssl/
++#    ./config --prefix="${TAO_BENCH_DEPS}"
++#    make -j"$(nproc)"
++#    make install
++#    popd
++#else
++#    echo "[SKIPPED] openssl_1_1_1b"
++#fi
+ 
+ # Install libevent
+ if ! [ -d "libevent" ]; then
+@@ -164,9 +164,9 @@ cp memtier_benchmark "${TAO_BENCH_ROOT}/tao_bench_client"
+ popd # memtier_client
+ popd # $TAO_BENCH_ROOT
+ 
+-if [ "$LINUX_DIST_ID" = "ubuntu" ]; then
+-  cp build-deps/lib/libcrypto.so.1.1 /lib/x86_64-linux-gnu/
+-fi
++#if [ "$LINUX_DIST_ID" = "ubuntu" ]; then
++#  cp build-deps/lib/libcrypto.so.1.1 /lib/x86_64-linux-gnu/
++#fi
+ # Extract certificates
+ tar -zxf "${COMMON_DIR}/certs.tar.gz" -C "${TAO_BENCH_ROOT}/"
+ popd
