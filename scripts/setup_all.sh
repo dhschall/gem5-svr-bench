@@ -28,10 +28,10 @@
 
 set -x
 
-GEM5=/users/dschall/gem5/build/X86/gem5.opt
+GEM5=/users/$USER/gem5/build/X86/gem5.opt
 KERNEL=./wkdir/kernel
 DISK_IMAGE=./wkdir/disk.img
-GEM5_CONFIG=./gem5-configs/x86-bpu-test.py
+GEM5_CONFIG=./gem5-configs/x86-simple.py
 
 
 
@@ -46,15 +46,19 @@ sudo chown $USER /dev/kvm
 
 
 BENCHMARKS=()
-# BENCHMARKS+=("nodeapp")
+BENCHMARKS+=("nodeapp")
 # BENCHMARKS+=("nodeapp-nginx")
 # BENCHMARKS+=("proto")
 # BENCHMARKS+=("swissmap")
-BENCHMARKS+=("libc")
+# BENCHMARKS+=("libc")
 # BENCHMARKS+=("tcmalloc")
 # BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 # BENCHMARKS+=("stl")
+# BENCHMARKS+=("taobench")
+# BENCHMARKS+=("feedsim")
+BENCHMARKS+=("django")
+# BENCHMARKS+=("mediawiki")
 
 
 
@@ -78,7 +82,7 @@ do
             $GEM5_CONFIG \
                 --kernel $KERNEL \
                 --disk $DISK_IMAGE \
-                --function ${bm} \
+                --workload ${bm} \
                 --mode=setup \
             > $OUTDIR/gem5.log 2>&1 \
             &

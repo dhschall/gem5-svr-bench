@@ -184,11 +184,17 @@ def maxInsts() -> bool:
 
 
 
+readfile = None
+if args.workload == "nodeapp" or args.workload == "nodeapp-nginx":
+    readfile = wlcfg[args.workload]["runscript"](wlcfg[args.workload], args.num_invocations, args.atomic_warming, 1)
+else:
+    readfile = wlcfg[args.workload]["runscript"](wlcfg[args.workload], 1)
+
 # Here we set a full system workload.
 board.set_kernel_disk_workload(
     kernel=KernelResource(args.kernel),
     disk_image=DiskImageResource(args.disk),
-    readfile_contents=wlcfg[args.workload]["runscript"](wlcfg[args.workload], 1),
+    readfile_contents=readfile,
     kernel_args=['earlyprintk=ttyS0', 'console=ttyS0', 'lpj=7999923',
                  'root=/dev/sda2',
                 #  'isolcpus=1',

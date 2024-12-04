@@ -22,8 +22,10 @@
 
 from gem5.components.processors.cpu_types import CPUTypes
 
-from .workloads import * 
+from .workloads import return_wlcfg
 import argparse
+
+wlcfg = return_wlcfg()
 
 cpu_types = {
     "atomic": CPUTypes.ATOMIC,

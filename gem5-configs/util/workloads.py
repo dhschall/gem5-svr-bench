@@ -22,12 +22,10 @@
 
 wlcfg = {}
 
-from .arguments import *
-
 ### Own Benchmarks ###################################################################
 
 
-def writeRunScript(cfg, cpu=1):
+def writeRunScript(cfg, num_invocations, atomic_warming, cpu=1):
     urlfile = cfg["urlfile"]
     dcfile = cfg["dcfile"]
     container = cfg["container"]
@@ -35,8 +33,8 @@ def writeRunScript(cfg, cpu=1):
     conc = 2
     # home = "root"
     home = "home/gem5"
-    n_invocations=args.num_invocations
-    n_warming=args.atomic_warming
+    n_invocations=num_invocations
+    n_warming=atomic_warming
     return f"""
 #!/bin/bash
 
@@ -184,3 +182,67 @@ wlcfg |= {
     },
 
 }
+
+### DCPerf ###################################################################
+
+def writeDCPerfRunScript(cfg, cpu=1):
+    workload = cfg["cmd"]
+    options = cfg["options"]
+    conc = 2
+    home = "home/gem5"
+    return f"""
+#!/bin/bash
+
+## Define the image name of your function.
+
+# We use the 'm5 exit' magic instruction to indicate the
+# python script where in workflow the system currently is.
+
+m5 exit ## 1: BOOTING complete
+
+sleep 3
+
+taskset -c {cpu} {workload} {options} &
+PID=$!
+
+sleep 1
+m5 fail 4 ## take checkpoint
+
+wait $PID
+
+
+sleep 5
+
+## exit the simulations
+m5 exit ## 6: Test done
+
+"""
+
+DCPERF_BASE = "/home/gem5/DCPerf"
+
+wlcfg |= {
+
+    "taobench": {
+        "runscript": writeDCPerfRunScript,
+        "cmd" : f"sudo {DCPERF_BASE}/benchpress_cli.py run tao_bench_standalone",
+        "options" : "",
+    },
+    "django": {
+        "runscript": writeDCPerfRunScript,
+        "cmd" : f"sudo {DCPERF_BASE}/benchpress_cli.py run django_workload_default -r standalone",
+        "options" : "",
+    },
+    "feedsim": {
+        "runscript": writeDCPerfRunScript,
+        "cmd" : f"sudo {DCPERF_BASE}/benchpress_cli.py run feedsim_autoscale",
+        "options" : "",
+    },
+    "mediawiki": {
+        "runscript": writeDCPerfRunScript,
+        "cmd" : f"sudo {DCPERF_BASE}/benchpress_cli.py run oss_performance_mediawiki_mlp",
+        "options" : "",
+    },
+}
+
+def return_wlcfg():
+    return wlcfg
