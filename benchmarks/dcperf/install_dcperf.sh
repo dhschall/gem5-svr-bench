@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ## Install the DCPerf dependencies
-sudo apt update && sudo apt -y -o Dpkg::Options::="--force-confold" upgrade
-sudo apt install -y python3-pip git lshw bc dmidecode
+#sudo apt update && sudo apt -y -o Dpkg::Options::="--force-confold" upgrade
+sudo apt install -y python3-pip git lshw bc dmidecode netcat
 sudo pip3 install click pyyaml tabulate pandas
 sudo apt install linux-tools-common linux-tools-generic linux-cloud-tools-generic numactl -y
 sudo apt install linux-tools-5.15.0-122-generic linux-cloud-tools-5.15.0-122-generic -y
@@ -52,6 +52,7 @@ tar -Jxf hhvm-3.30-multplatform-binary-ubuntu.tar.xz
 cd hhvm
 sudo ./pour-hhvm.sh
 export LD_LIBRARY_PATH="/opt/local/hhvm-3.30/lib:$LD_LIBRARY_PATH"
+df / -h
 
 # Install mediawiki
 cd ../DCPerf
