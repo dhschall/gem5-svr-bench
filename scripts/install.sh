@@ -5,10 +5,10 @@ sudo apt update
 
 # Install qemu and others
 sudo apt install -y \
-        qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virtinst libvirt-daemon \
+        qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils virtinst libvirt-daemon pigz \
         pip
 
-pip install numpy matplotlib
+pip install numpy matplotlib tqdm
 
 # Check system architecture
 

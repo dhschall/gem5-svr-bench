@@ -24,35 +24,39 @@
 
 MKFILE 		:= $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT 		:= $(abspath $(dir $(MKFILE))/../)
-ARCH = $(shell dpkg --print-architecture)
+
 
 ## User specific inputs
+RESOURCES 	?= $(ROOT)/image/
 WORKING_DIR ?= $(ROOT)/wkdir/
+ARCH		?= arm64
+
+ifeq ($(ARCH), amd64)
+	_ARCH=X86
+else ifeq ($(ARCH), arm64)
+	_ARCH=ARM
+endif
 
 
 ## Machine parameter
-MEMORY 	:= 32G
+MEMORY 	:= 16G
 CPUS    := 4
 CPU 	?= host -enable-kvm
 
 
-## Required artifacts
-TMP_DIR := $(ROOT)/image/tmp/
+## Required resources
+KERNEL 		?= $(RESOURCES)/vmlinux-jammy-arm64
+CLIENT 		?= $(RESOURCES)/test-client-arm64
+DISK		?= $(RESOURCES)/disk-image.qcow2
 
 
-CLIENT 	:= $(TMP_DIR)/http-client
-DISK	:= $(ROOT)/image/x86-disk-image-22-04/x86-ubuntu
+
 
 ## Dependencies -------------------------------------------------
-$(TMP_DIR):
-	mkdir -p $@
-	
-
-$(CLIENT): $(TMP_DIR)
-	cd $(ROOT)/client && \
-	ARCH=$(ARCH) make all
-	cp $(ROOT)/client/http-client $@
-	
+## Check and install all dependencies necessary to perform function
+##
+# dep_install:
+# 	sudo pip install -U niet
 
 
 
@@ -63,20 +67,15 @@ WK_KERNEL 	:= $(WORKING_DIR)/kernel
 WK_DISK 	:= $(WORKING_DIR)/disk.img
 WK_CLIENT	:= $(WORKING_DIR)/test-client
 
-build-wkdir: $(WORKING_DIR) $(TMP_DIR) \
-	$(WK_DISK) $(WK_KERNEL) $(WK_CLIENT)
-
+build-wkdir: $(WORKING_DIR) \
+	$(WK_DISK) $(WK_KERNEL) $(WK_CLIENT) \
 
 $(WORKING_DIR):
 	@echo "Create folder: $(WORKING_DIR)"
 	mkdir -p $@
 
-# $(WK_KERNEL): $(KERNEL)
-# 	cp $< $@
-
-$(WK_KERNEL): 
-	wget -O $@ https://github.com/vhive-serverless/vSwarm-u/releases/download/v0.3.0/vmlinux-jammy-${ARCH}
-
+$(WK_KERNEL): $(KERNEL)
+	cp $< $@
 
 $(WK_CLIENT): $(CLIENT)
 	cp $< $@
@@ -87,9 +86,20 @@ $(WK_DISK): $(DISK)
 	qemu-img convert $< $@
 
 
-
 ## Run Emulator -------------------------------------------------
-
+# Do the actual emulation run
+# The command will boot an instance.
+# Then it will listen to port 3003 to retive a run script
+# This run script will be the one we provided.
+# run_emulator:
+# 	sudo qemu-system-x86_64 \
+# 		-nographic \
+# 		-cpu host -enable-kvm \
+# 		-smp ${CPUS} \
+# 		-m ${MEMORY} \
+# 		-drive file=$(WK_DISK),format=raw \
+# 		-kernel $(WK_KERNEL) \
+# 		-append 'console=ttyS0 root=/dev/hda2'
 
 FLASH0 := $(WORKING_DIR)/flash0.img
 FLASH1 := $(WORKING_DIR)/flash1.img
@@ -102,7 +112,7 @@ $(FLASH1):
 	truncate -s 64M $@
 
 
-run-arm: $(FLASH0) $(FLASH1)
+run_emulator_arm: $(FLASH0) $(FLASH1)
 	sudo qemu-system-aarch64 \
 		-nographic \
 		-M virt \
@@ -112,21 +122,26 @@ run-arm: $(FLASH0) $(FLASH1)
 		-device e1000,netdev=net0 \
     	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:5555-:22  \
 		-drive file=$(WK_DISK),format=raw \
-		-drive file=$(FLASH0),format=raw,if=pflash -drive file=$(FLASH1),format=raw,if=pflash 
+		-drive file=$(FLASH0),format=raw,if=pflash -drive file=$(FLASH1),format=raw,if=pflash \
+		-kernel $(WK_KERNEL) \
+		-append 'console=ttyAMA0 earlyprintk=ttyAMA0 lpj=7999923 root=/dev/vda2'
 
 
 
-run-x86:
-	sudo qemu-system-x86_64 \
-		-nographic -serial mon:stdio \
-		-cpu host -enable-kvm \
-		-smp ${CPUS} -m ${MEMORY} \
-		-drive file=$(WK_DISK),format=raw \
-		-device e1000,netdev=net0 \
-    	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:5555-:22 
+# run_emulator_arm:
+# 	sudo qemu-system-aarch64 -M virt -enable-kvm -cpu host -m 2048 \
+# 		-kernel $(WK_KERNEL) \
+# 		-append 'console=ttyAMA0 earlyprintk=ttyAMA0 lpj=7999923 root=/dev/vda2 rw' \
+# 		-drive file=wkdir/disk.img,format=raw,id=hd \
+# 		-no-reboot \
+# 		-device e1000,netdev=net0 \
+# 		-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:5555-:22  \
+# 		-nographic
+
+run: run_emulator_arm
+run-arm64: run_emulator_arm
 
 
-
-
-run-arm64: run-arm
-run-amd64: run-x86
+RED=\033[0;31m
+GREEN=\033[0;32m
+NC=\033[0m # No Color
