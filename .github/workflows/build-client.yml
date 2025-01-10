@@ -70,7 +70,7 @@ jobs:
           make all
 
       - name: Upload the artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: http-client-${{ matrix.arch }}
           path: ./client/http-client
