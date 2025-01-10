@@ -71,17 +71,14 @@ jobs:
   test-compose:
     name: Test Docker Compose
     needs: build-and-push
-    env:
-      YAML_FILE: benchmarks/nodeapp/docker-compose.yaml
-      URLS_FILE: benchmarks/nodeapp/urls.tmpl
     runs-on: ubuntu-20.04
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     service:
-    #       [
-    #         nodeapp
-    #       ]
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - bm: nodeapp
+            yaml_file: benchmarks/nodeapp/docker-compose.yaml
+            urls_file: benchmarks/nodeapp/urls.tmpl
 
     steps:
       - name: Check out code into the Go module directory
@@ -95,8 +92,8 @@ jobs:
 
       - name: start docker-compose benchmark
         run: |
-          docker compose -f ${{ env.YAML_FILE }} pull
-          docker compose -f ${{ env.YAML_FILE }} up &> log_file &
+          docker compose -f ${{ matrix.yaml_file }} pull
+          docker compose -f ${{ matrix.yaml_file }} up &> log_file &
           sleep 60s
           cat log_file
 
@@ -107,7 +104,7 @@ jobs:
 
       - name: invoke the service
         run: |
-          ./client/http-client -f ${{ env.URLS_FILE }} -url 0.0.0.0 -c 2 -n 10 -w 0 -v
+          ./client/http-client -f ${{ matrix.urls_file}} -url 0.0.0.0 -c 2 -n 10 -w 0 -v
           curl 0.0.0.0:9999/
 
       - name: show docker-compose log
