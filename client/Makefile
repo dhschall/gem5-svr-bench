@@ -47,6 +47,14 @@ dep_install:
 		gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu device-tree-compiler
 
 
+install_go:
+	wget https://golang.org/dl/go1.23.4.linux-$(ARCH).tar.gz
+	rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.4.linux-$(ARCH).tar.gz
+	export PATH=$PATH:/usr/local/go/bin
+	rm go1.23.4.linux-$(ARCH).tar.gz
+	go version
+
+
 ## Configure the m5 address depending on the architecture
 ifeq ($(ARCH), arm64)
 M5OP_ADDR=0x10010000

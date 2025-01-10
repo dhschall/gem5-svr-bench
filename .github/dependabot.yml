@@ -7,7 +7,14 @@ updates:
   - package-ecosystem: "npm"
     # Look for `package.json` and `lock` files in the `root` directory
     directories:
-      - "/benchmarks/nodejs-shopping-cart"
-      - "/benchmarks/nodejs-todo"
+      - "./benchmarks/nodejs-shopping-cart/"
+      - "./benchmarks/nodejs-todo/"
+    schedule:
+      interval: "weekly"
+
+  # Enable version updates for Actions
+  - package-ecosystem: "github-actions"
+    # Look for `.github/workflows` in the `root` directory
+    directory: "/"
     schedule:
       interval: "weekly"
