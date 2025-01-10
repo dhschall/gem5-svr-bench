@@ -39,12 +39,6 @@ build {
     scripts         = ["${local.rootdir}/image/scripts/install_docker.sh"]
   }
 
-  ## Fleetbench provisioning --------------------------
-  provisioner "file" {
-    destination = "fleetbench.patch"
-    source      = "${local.rootdir}/benchmarks/fleetbench/fleetbench_arm.patch"
-  }
-
   # 
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"

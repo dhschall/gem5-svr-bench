@@ -19,7 +19,7 @@ else
   sudo apt install apt-transport-https curl gnupg -y
   wget https://github.com/bazelbuild/bazel/releases/download/7.4.1/bazel-7.4.1-linux-arm64
   chmod +x bazel-7.4.1-linux-arm64
-  sudo apt update && sudo apt install -y bazel zip unzip default-jdk libgoogle-perftools-dev
+  sudo apt update && sudo apt install -y zip unzip default-jdk libgoogle-perftools-dev
   sudo apt install -y gcc g++ libz-dev
 fi
 

@@ -18,7 +18,7 @@ if [ $ARCH == "arm64" ]; then
     make -f $SCRIPTPATH/arm.Makefile build-wkdir
     make -f $SCRIPTPATH/arm.Makefile run-$ARCH 1> qemu.log 2>&1 &
     # Store the configuration file name from the command line argument
-config_file=$SCRIPTPATH/packer-scripts/benchmarks_arm.pkr.hcl
+    config_file=$SCRIPTPATH/packer-scripts/benchmarks_arm.pkr.hcl
 else
     make -f $SCRIPTPATH/Makefile build-wkdir
     make -f $SCRIPTPATH/Makefile run-$ARCH 1> qemu.log 2>&1 &

@@ -22,7 +22,7 @@ Use the `install.sh` to install qemu along with other packages needed to build t
 
 ## Prepare the benchmark disk image
 
-### Build base disk image
+### Build base disk image (x86)
 
 To create a fresh base image with docker and all gem5 tools installed use the `build-<x86/arm>.sh` script in the image folder. This step has done only once and the same base disk image can be used for different workloads.
 
@@ -40,6 +40,17 @@ cd ..
 
 The build process should take less than 10 min after which the new base image will be placed in the `x86-disk-image-22-04` directory.
 
+### Build base disk image (ARM)
+
+We pull the base disk image from the vSwarm-u repository. We only pull the image once, and we can then use it for all benchmarks. The image is downloaaded in parts and then merged, and the process can take a while. Use the following command to download the image:
+
+```bash
+cd gem5-svr-bench
+# Download the base disk image for ARM
+python3 image/scripts/arm_artifacts.py
+```
+
+The image will be stored in the base gem5-svr-bench directory.
 
 ### Install the benchmarks on the disks
 
@@ -51,8 +62,7 @@ Run the install script to automatically install the benchmarks onto the disk ima
 ./image/install.sh
 ```
 The script will create a new working directory `wkdir` and copy all files needed for the gem5 simulation needed (disk-image, kernel, http-client) into it.
-Afterwards the disk is booted with QEMU and the benchmarks installed onto the disk
-
+Afterwards the disk is booted with QEMU and the benchmarks installed onto the disk. QEMU might give errors when booting ARM, or stall, and you can check the `qemu.log` file for this, and just re-running the install script should fix the issue.
 
 ### Booting the disk image in QEMU
 
@@ -69,7 +79,7 @@ Finally, for debugging purposes, you can use another terminal login via ssh usin
 ssh gem5@localhost -p 5555
 ```
 
-
+**NOTE: The username as well as password for the ARM image is `root` and for the x86 image it is `gem5`.
 
 ## Gem5 simulation
 
