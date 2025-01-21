@@ -77,7 +77,28 @@ build {
     ]
   }
 
+  ## Mediawiki provisioning --------------------------
+  provisioner "file" {
+    destination = "mediawiki.urls.tmpl"
+    source      = "${local.rootdir}/benchmarks/mediawiki/urls.tmpl"
+  }
 
+  provisioner "file" {
+    destination = "dc-mediawiki.yaml"
+    source      = "${local.rootdir}/benchmarks/mediawiki/docker-compose.yaml"
+  }
+
+
+  provisioner "shell" {
+    execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+    inline = [
+      "sudo docker compose -f dc-mediawiki.yaml pull",
+      "sudo docker compose -f dc-mediawiki.yaml up -d",
+      "sleep 10",
+      "curl 0.0.0.0:9999/",
+      "sudo docker compose -f dc-mediawiki.yaml down",
+    ]
+  }
 
 
   ## Fleetbench provisioning --------------------------

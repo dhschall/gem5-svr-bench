@@ -97,6 +97,18 @@ wlcfg |= {
         "dcfile": "dc-nodeapp.yaml",
         "container": "nginx",
     },
+    "mediawiki": {
+        "runscript": writeRunScript,
+        "urlfile": "mediawiki.urls.tmpl",
+        "dcfile": "dc-mediawiki.yaml",
+        "container": "wiki",
+    },
+    "mediawiki-nginx": {
+        "runscript": writeRunScript,
+        "urlfile": "mediawiki.urls.tmpl",
+        "dcfile": "dc-mediawiki.yaml",
+        "container": "nginx",
+    },
 }
 
 

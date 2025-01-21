@@ -10,7 +10,10 @@ We support workloads from Googles [Fleetbench](https://github.com/google/fleetbe
 
 The following own benchmarks are shipped with this repo
 
-
+Benchmark   | Description | Orchestration | x86 support | Arm support
+----------- | ----- | --- | --- | ---
+Nodeapp     | Small shopping website implemented in NodeJS. Nginx as HTTP server. | Docker | ✓ | ✕ |
+Mediawiki   | Mediawiki page. Witten in PHP. FPM as content server. Nginx as HTTP server, MariaDB as database | Docker | ✓ | ✕ |
 
 
 ## Fleetbench (Google)

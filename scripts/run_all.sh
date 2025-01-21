@@ -31,7 +31,7 @@ set -x
 GEM5=/users/dschall/gem5/build/X86/gem5.opt
 KERNEL=./wkdir/kernel
 DISK_IMAGE=./wkdir/disk.img
-GEM5_CONFIG=./gem5-configs/x86-bpu-test.py
+GEM5_CONFIG=./gem5-configs/x86-simple.py
 
 
 
