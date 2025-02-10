@@ -9,7 +9,7 @@
   "author": "Vanessa Ating",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^2.0.2",
+    "body-parser": "^2.1.0",
     "ejs": "^2.5.7",
     "express": "^4.21.2"
   }
