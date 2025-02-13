@@ -114,6 +114,23 @@ build {
   }
 
 
+  ## Verilator provisioning --------------------------
+  provisioner "file" {
+    destination = "Variane_testharness"
+    source      = "${local.rootdir}/benchmarks/verilator/Variane_testharness"
+  }
+
+  provisioner "file" {
+    destination = "dhrystone.riscv"
+    source      = "${local.rootdir}/benchmarks/verilator/dhrystone.riscv"
+  }
+
+  provisioner "shell" {
+    inline = [
+      "chmod +x Variane_testharness",
+    ]
+  }
+
 
   #### Shutdown the VM ###########
   provisioner "shell" {

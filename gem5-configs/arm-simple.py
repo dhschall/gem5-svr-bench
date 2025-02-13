@@ -124,7 +124,7 @@ cache_hierarchy = PrivateL1PrivateL2CacheHierarchy(
 )
 
 # Memory: Dual Channel DDR4 2400 DRAM device.
-memory = DualChannelDDR4_2400(size="2GB")
+memory = DualChannelDDR4_2400(size="3GB")
 
 # Here we setup the processor. For booting we take the KVM core and
 # for the evaluation we can take ATOMIC, TIMING or O3

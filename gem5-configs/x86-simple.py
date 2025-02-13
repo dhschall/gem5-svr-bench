@@ -78,7 +78,7 @@ if args.mode == "setup":
 
 
 # Memory: Dual Channel DDR4 2400 DRAM device.
-memory = DualChannelDDR4_2400(size="2GB")
+memory = DualChannelDDR4_2400(size="3GiB")
 
 
 # Here we setup the parameters of the l1 and l2 caches.
@@ -151,7 +151,7 @@ def executeExit() -> bool:
 
 
 def executeFail() -> bool:
-    
+
     while True:
         fc = simulator.get_last_exit_event_code()
         print("Fail code: ", fc)

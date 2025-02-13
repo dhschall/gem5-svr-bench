@@ -196,3 +196,47 @@ wlcfg |= {
     },
 
 }
+
+
+
+
+### Fleetbench ###################################################################
+
+
+def writeVerilatorRunScript(cfg, cpu=1):
+    # home = "root"
+    home = "home/gem5"
+    return f"""
+#!/bin/bash
+
+## Define the image name of your function.
+
+# We use the 'm5 exit' magic instruction to indicate the
+# python script where in workflow the system currently is.
+
+m5 exit ## 1: BOOTING complete
+
+sleep 3
+
+taskset -c {cpu} /{home}/Variane_testharness /{home}/dhrystone.riscv &
+PID=$!
+
+sleep 25 ## Sleep for at least 20 seconds in which the model loads the
+         ## binary before starting the actual simulation
+m5 fail 4 ## take checkpoint
+
+
+wait $PID
+
+## exit the simulations
+m5 exit ## 6: Test done
+
+"""
+
+
+wlcfg |= {
+
+    "verilator": {
+        "runscript": writeVerilatorRunScript,
+    },
+}
