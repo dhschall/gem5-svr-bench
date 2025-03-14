@@ -1,5 +1,5 @@
-#
-# Copyright (c) 2024 David Schall and EASE lab
+# Copyright (c) 2025 Technical University of Munich
+# All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ The function is invoked using a test client.
 The workflow has two steps
 1. Use the "setup" mode to boot the full system from scratch using the KVM core. The
    script will perform functional warming and then take a checkpoint of the system.
-2. Use the "evaluation" mode to start from the previously taken checkpoint and perform
+2. Use the "eval" mode to start from the previously taken checkpoint and perform
    the actual measurements using a detailed core model.
 
 Usage
@@ -37,7 +37,7 @@ Usage
 ```
 scons build//<ALL|ARM>/gem5.opt -j<NUM_CPUS>
 ./build/<ALL|ARM>/gem5.opt arm-simple.py
-    --mode <setup/evaluation> --function <function-name>
+    --mode <setup/eval> --function <function-name>
     --kernel <path-to-vmlinux> --disk <path-to-disk-image>
     --atomic-warming <num-inv-to-warm> --num-invocations <num-inv-to-simulate>
 ```
@@ -70,70 +70,35 @@ from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierar
     PrivateL1PrivateL2CacheHierarchy,
 )
 
-import os
 from pathlib import Path
 
-
-import argparse
-def parse_arguments():
-    parser = argparse.ArgumentParser(description=
-                        "gem5 config file to run vSwarm benchmarks")
-    parser.add_argument("--kernel", type = str, help = "Path to vmlinux")
-    parser.add_argument("--disk", type = str,
-                  help = "Path to the disk image containing your function image")
-    parser.add_argument("-f", "--function", action="store", type=str, default="nodeapp",
-                        help="""Specify a function that should run in the simulator.""")
-    parser.add_argument("--atomic-warming", type=int, default=100,
-                        help="""Perform warming of the cache hierarchy using the atomic core.""")
-    parser.add_argument("--num-invocations", type=int, default=40,
-                        help="""Number of invocation to be measured.""")
-    parser.add_argument("--mode", type=str, default="setup",choices=["setup", "evaluation",],
-                        help="""Setup mode: Will boot linux using the kvm core, perform functional
-                                warming and then take a snapshot.
-                                Evaluation mode: Will start from a previously taken checkpoint
-                                do some """)
-    parser.add_argument("--checkpoint-dir", type = str, default="checkpoints/",
-                        help = "Directory of")
-    return parser.parse_args()
+from util.workloads import *
+from util.arguments import *
 
 
-args = parse_arguments()
+
+checkpoint_dir = "wkdir/checkpoints"
 
 if args.mode == "setup":
-    Path("{}/{}".format(args.checkpoint_dir, args.function)).mkdir(parents=True, exist_ok=True)
+    Path("{}/{}".format(checkpoint_dir, args.workload)).mkdir(parents=True, exist_ok=True)
 
 
 
 
-cfgs = {
-    "nodeapp": {
-        "urlfile": "nodeapp.urls.tmpl",
-        "dcfile": "dc-nodeapp.yaml",
-        "container": "nodeapp",
-    },
-}
-
-
-
-
+# Memory: Dual Channel DDR4 2400 DRAM device.
+memory = DualChannelDDR4_2400(size="3GiB")
 
 
 # Here we setup the parameters of the l1 and l2 caches.
 cache_hierarchy = PrivateL1PrivateL2CacheHierarchy(
-    l1d_size="32kB", l1i_size="32kB", l2_size="1MB"
+    l1d_size="32KiB", l1i_size="32KiB", l2_size="1MiB"
 )
-
-# Memory: Dual Channel DDR4 2400 DRAM device.
-memory = DualChannelDDR4_2400(size="3GB")
 
 # Here we setup the processor. For booting we take the KVM core and
 # for the evaluation we can take ATOMIC, TIMING or O3
-eval_core = CPUTypes.ATOMIC
-# eval_core = CPUTypes.TIMING
-# eval_core = CPUTypes.O3
 
 processor = SimpleProcessor(
-    cpu_type=CPUTypes.KVM if args.mode=="setup" else eval_core,
+    cpu_type=CPUTypes.KVM if args.mode=="setup" else cpu_types[args.cpu_type],
     isa=ISA.ARM,
     num_cores=2,
 )
@@ -142,42 +107,12 @@ processor = SimpleProcessor(
 # The ArmBoard requires a `release` to be specified. This adds all the
 # extensions or features to the system. We are setting this to Armv8
 # (ArmDefaultRelease) in this example config script.
-# release = Armv83()
 release = ArmDefaultRelease.for_kvm()
 
 # The platform sets up the memory ranges of all the on-chip and off-chip
 # devices present on the ARM system. ARM KVM only works with VExpress_GEM5_V1
 # on the ArmBoard at the moment.
 platform = VExpress_GEM5_V1()
-# platform = VExpress_GEM5_Foundation()
-
-def _build_kvm(options, system, cpus):
-    system.kvm_vm = KvmVM()
-    system.release = ArmDefaultRelease.for_kvm()
-
-    if options.kvm_userspace_gic:
-        # We will use the simulated GIC.
-        # In order to make it work we need to remove the system interface
-        # of the generic timer from the DTB and we need to inform the
-        # MuxingKvmGic class to use the gem5 GIC instead of relying on the
-        # host interrupt controller
-        GenericTimer.generateDeviceTree = SimObject.generateDeviceTree
-        system.realview.gic.simulate_gic = True
-
-    # Assign KVM CPUs to their own event queues / threads. This
-    # has to be done after creating caches and other child objects
-    # since these mustn't inherit the CPU event queue.
-    if len(cpus) > 1:
-        device_eq = 0
-        first_cpu_eq = 1
-        for idx, cpu in enumerate(cpus):
-            # Child objects usually inherit the parent's event
-            # queue. Override that and use the same event queue for
-            # all devices.
-            for obj in cpu.descendants():
-                obj.eventq_index = device_eq
-            cpu.eventq_index = first_cpu_eq + idx
-
 
 
 # Here we setup the board. The ArmBoard allows for Full-System ARM simulations.
@@ -191,60 +126,6 @@ board = ArmBoard(
 )
 
 
-def writeRunScript(cfg, cpu=1):
-    urlfile = cfg["urlfile"]
-    dcfile = cfg["dcfile"]
-    container = cfg["container"]
-    test_ip = "0.0.0.0"
-    conc = 2
-    # home = "root"
-    home = "home/gem5"
-    n_invocations=args.num_invocations
-    n_warming=args.atomic_warming
-    return f"""
-#!/bin/bash
-
-## Define the image name of your function.
-
-# We use the 'm5 exit' magic instruction to indicate the
-# python script where in workflow the system currently is.
-
-m5 --addr=0x10010000 exit ## 1: BOOTING complete
-
-## Spin up Container
-echo "Start the container..."
-sudo docker compose -f /{home}/{dcfile} up -d
-sudo docker compose -f /{home}/{dcfile} up -d
-m5 --addr=0x10010000 exit ## 2: Started container
-
-echo "Pin {container} container to core {cpu}"
-sudo docker update {container} --cpuset-cpus {cpu}
-sleep 30
-
-sleep 5
-m5 --addr=0x10010000 exit ## 3: Pinned container
-
-
-# # The client will perform some functional warming
-# and then send a fail code before invoking the
-# function again for the actual measurement.
-sudo GOGC=1000 /{home}/http-client -f /{home}/{urlfile} -url {test_ip} -c {conc} -n {n_invocations} -w {n_warming} -m5ops -m5iv 1 -v
-
-
-
-m5 --addr=0x10010000 exit ## 4: Stop client
-# -------------------------------------------
-
-
-## Stop container
-sudo docker compose -f /{home}/{dcfile} down
-m5 --addr=0x10010000 exit ## 5: Container stop
-
-
-## exit the simulations
-m5 --addr=0x10010000 exit ## 6: Test done
-
-"""
 
 
 def workitems(start) -> bool:
@@ -252,13 +133,15 @@ def workitems(start) -> bool:
     while True:
         if start:
             print("Begin Invocation ", cnt)
-            # args.mode == "evaluation" and m5.stats.reset()
         else:
             print("End Invocation ", cnt)
-            args.mode == "evaluation" and m5.stats.dump()
+            if args.mode == "eval":
+                m5.stats.dump()
+                m5.stats.reset()
+
             cnt += 1
 
-        if args.mode == "evaluation" and cnt >= args.num_invocations:
+        if args.mode == "eval" and cnt >= args.num_invocations:
             yield True
         yield False
 
@@ -293,34 +176,53 @@ def executeExit() -> bool:
 
 
 def executeFail() -> bool:
-    
+
     while True:
         fc = simulator.get_last_exit_event_code()
         print("Fail code: ", fc)
         if fc == 4:
             if args.mode == "setup":
-                m5.checkpoint("{}/{}".format(args.checkpoint_dir, args.function))
+                m5.checkpoint("{}/{}".format(checkpoint_dir, args.workload))
+                m5.stats.dump()
+                m5.stats.reset()
 
         yield False
 
 
 
+delta = 5_000_000
 
-# Here we set a full system workload. The "arm64-ubuntu-20.04-boot" boots
-# Ubuntu 20.04. We use arm64-bootloader (boot.arm64) as the bootloader to use
-# ARM KVM.
+def maxInsts() -> bool:
+    sim_instr = 0
+    max_instr = 20_000_000
+
+    while True:
+        m5.stats.dump()
+        m5.stats.reset()
+        sim_instr += delta
+        print("Simulated Instructions: ", sim_instr)
+        simulator.schedule_max_insts(delta)
+        if sim_instr >= max_instr:
+            yield True
+        yield False
+
+
+
+
+# Here we set a full system workload.
 board.set_kernel_disk_workload(
     kernel=KernelResource(args.kernel),
     disk_image=DiskImageResource(args.disk),
     bootloader=obtain_resource("arm64-bootloader"),
-    readfile_contents=writeRunScript(cfgs[args.function], 1),
+    readfile_contents=wlcfg[args.workload]["runscript"](wlcfg[args.workload], 1),
     kernel_args=["console=ttyAMA0",
                  "lpj=19988480", "norandmaps",
-                 "root=/dev/vda1", "disk_device=/dev/vda1",
+                 "root=/dev/vda2", "disk_device=/dev/vda2",
                  'isolcpus=1',
-                 "rw", "mem=2147483648"
+                 'cloud-init=disabled',
+                 'mitigations=off',
                 ],
-    checkpoint=Path("{}/{}".format(args.checkpoint_dir, args.function)) if args.mode=="evaluation" else None,
+    checkpoint=Path("{}/{}".format(checkpoint_dir, args.workload)) if args.mode=="eval" else None,
 )
 
 class MySimulator(Simulator):
@@ -333,12 +235,16 @@ simulator = MySimulator(
     board=board,
     on_exit_event={
         # ExitEvent.EXIT: (func() for func in [processor.switch]),
-        ExitEvent.WORKBEGIN: workitems(True),
-        ExitEvent.WORKEND: workitems(False),
+        # ExitEvent.WORKBEGIN: workitems(True),
+        # ExitEvent.WORKEND: workitems(False),
         ExitEvent.EXIT: executeExit(),
         ExitEvent.FAIL: executeFail(),
+        ExitEvent.MAX_INSTS: maxInsts(),
         },
 )
+
+if args.mode == "eval":
+    simulator.schedule_max_insts(delta)
 
 # Once the system successfully boots, it encounters an
 # `m5_exit instruction encountered`. We stop the simulation then. When the

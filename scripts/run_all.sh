@@ -28,7 +28,20 @@
 
 set -x
 
-GEM5=/users/dschall/gem5/build/X86/gem5.opt
+ARCH=${1:-$(dpkg --print-architecture)}
+
+
+if [ $ARCH == "amd64" ]; then
+    GEM5=./../gem5/build/X86/gem5.opt
+    GEM5_CONFIG=./gem5-configs/x86-simple.py
+elif [ $ARCH == "arm64" ]; then
+    GEM5=./../gem5/build/ARM/gem5.opt
+    GEM5_CONFIG=./gem5-configs/arm-simple.py
+else
+    echo "Invalid architecture: $ARCH"
+    exit 1
+fi
+
 KERNEL=./wkdir/kernel
 DISK_IMAGE=./wkdir/disk.img
 GEM5_CONFIG=./gem5-configs/x86-simple.py
@@ -78,7 +91,7 @@ do
             $GEM5_CONFIG \
                 --kernel $KERNEL \
                 --disk $DISK_IMAGE \
-                --function ${bm} \
+                --workload ${bm} \
                 --mode=eval \
             > $OUTDIR/gem5.log 2>&1 \
             &

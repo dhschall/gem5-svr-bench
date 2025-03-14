@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Technical University of Munich
+# Copyright (c) 2025 Technical University of Munich
 # All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

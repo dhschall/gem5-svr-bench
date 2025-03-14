@@ -40,3 +40,4 @@ m5out
 checkpoints
 results
 *.img
+*.log

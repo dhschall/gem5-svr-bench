@@ -22,8 +22,6 @@
 
 wlcfg = {}
 
-from .arguments import *
-
 ### Own Benchmarks ###################################################################
 
 
@@ -35,8 +33,8 @@ def writeRunScript(cfg, cpu=1):
     conc = 2
     # home = "root"
     home = "home/gem5"
-    n_invocations=args.num_invocations
-    n_warming=args.atomic_warming
+    n_invocations=cfg["invocations"]
+    n_warming=cfg["warming"]
     return f"""
 #!/bin/bash
 
@@ -90,24 +88,32 @@ wlcfg |= {
         "urlfile": "nodeapp.urls.tmpl",
         "dcfile": "dc-nodeapp.yaml",
         "container": "nodeapp",
+        "invocations": 200,
+        "warming": 5000,
     },
     "nodeapp-nginx": {
         "runscript": writeRunScript,
         "urlfile": "nodeapp.urls.tmpl",
         "dcfile": "dc-nodeapp.yaml",
         "container": "nginx",
+        "invocations": 200,
+        "warming": 5000,
     },
     "mediawiki": {
         "runscript": writeRunScript,
         "urlfile": "mediawiki.urls.tmpl",
         "dcfile": "dc-mediawiki.yaml",
         "container": "wiki",
+        "invocations": 200,
+        "warming": 5000,
     },
     "mediawiki-nginx": {
         "runscript": writeRunScript,
         "urlfile": "mediawiki.urls.tmpl",
         "dcfile": "dc-mediawiki.yaml",
         "container": "nginx",
+        "invocations": 200,
+        "warming": 5000,
     },
 }
 

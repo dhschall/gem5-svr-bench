@@ -20,7 +20,7 @@ source "null" "remote" {
   ssh_port = "5555"
   ssh_password     = "${var.ssh_password}"
   ssh_username     = "${var.ssh_username}"
-  ssh_handshake_attempts = "10"
+  ssh_handshake_attempts = "30"
   # shutdown_command = "echo '${var.ssh_password}'|sudo -S shutdown -P now"
   communicator = "ssh"
 }
@@ -109,7 +109,7 @@ build {
 
   # 
   provisioner "shell" {
-    execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+    execute_command = "echo '${var.ssh_password}' | {{ .Vars }} bash '{{ .Path }}'"
     scripts         = ["${local.rootdir}/benchmarks/fleetbench/install_fleetbench.sh"]
   }
 

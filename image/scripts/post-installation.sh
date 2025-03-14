@@ -23,9 +23,6 @@ mv /home/gem5/serial-getty@.service /lib/systemd/system/
 # packages will be built against.
 sudo apt -y install "linux-headers-$(uname -r)" "linux-modules-extra-$(uname -r)"
 
-echo "Extracting linux kernel $(uname -r) to /home/gem5/vmlinux-x86-ubuntu"
-sudo bash -c "/usr/src/linux-headers-$(uname -r)/scripts/extract-vmlinux /boot/vmlinuz-$(uname -r) > /home/gem5/vmlinux-x86-ubuntu"
-
 echo "Installing the gem5 init script in /sbin"
 mv /home/gem5/gem5_init.sh /sbin
 mv /sbin/init /sbin/init.old
@@ -80,18 +77,40 @@ echo "Done building and installing gem5-bridge (m5) and libm5"
 
 # You can extend this script to install your own packages here.
 
-# # Disable network by default
-# echo "Disabling network by default"
-# echo "See README.md for instructions on how to enable network"
-# if [ -f /etc/netplan/50-cloud-init.yaml ]; then
-#     mv /etc/netplan/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml.bak
-# elif [ -f /etc/netplan/00-installer-config.yaml ]; then
-#     mv /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.yaml.bak
-#     netplan apply
-# fi
 
 # Disable password for sudo
 echo "gem5 ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+
+
+# if [ "${ISA}" = "x86" ]; then
+#     echo "Disabling systemd services for x86 architecture..."
+
+#     # Disable multipathd service
+#     systemctl disable multipathd.service
+
+#     # Disable thermald service
+#     systemctl disable thermald.service
+
+#     # Disable snapd services and socket
+#     systemctl disable snapd.service snapd.socket
+
+#     # Disable unnecessary timers
+#     systemctl disable apt-daily.timer apt-daily-upgrade.timer fstrim.timer
+
+#     # Disable accounts-daemon
+#     systemctl disable accounts-daemon.service
+
+#     # Disable LVM monitoring service
+#     systemctl disable lvm2-monitor.service
+
+#     # Switch default target to multi-user (no GUI)
+#     systemctl set-default multi-user.target
+
+#     # Optionally disable AppArmor if not required
+#     systemctl disable apparmor.service snapd.apparmor.service
+
+#     echo "completed disabling systemd services for x86."
+# fi
 
 echo "Post Installation Done"

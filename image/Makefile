@@ -41,7 +41,12 @@ TMP_DIR := $(ROOT)/image/tmp/
 
 
 CLIENT 	:= $(TMP_DIR)/http-client
-DISK	:= $(ROOT)/image/x86-disk-image-22-04/x86-ubuntu
+ifeq ($(ARCH), arm64)
+    DISK := $(ROOT)/image/arm-disk-image-22-04/arm-ubuntu
+else
+    DISK := $(ROOT)/image/x86-disk-image-22-04/x86-ubuntu
+endif
+
 
 ## Dependencies -------------------------------------------------
 $(TMP_DIR):

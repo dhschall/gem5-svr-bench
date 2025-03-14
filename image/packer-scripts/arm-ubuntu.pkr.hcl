@@ -67,10 +67,12 @@ locals {
     ["-boot", "order=dc"],
     ["-bios", "./files/flash0.img"],
     ["-machine", "virt"],
-    ["-machine", "gic-version=3"],
+    ["-machine", "gic-version=max"],
+    ["-serial", "mon:stdio"],
     ["-device", "virtio-gpu-pci"],
     ["-device", "qemu-xhci"],
     ["-device", "usb-kbd"],
+    ["-nographic"],
   ]
 
   qemuargs_kvm = concat(local.qemuargs_base,[
@@ -96,8 +98,8 @@ source "qemu" "initialize" {
                       "<enter>",
                       "<wait>"
                       ]
-  cpus             = "4"
-  disk_size        = "15G"
+  cpus             = "16"
+  disk_size        = "16G"   # 15G + Boot partition + 1MB reserve
   format           = "raw"
   headless         = "true"
   http_directory   = local.iso_data[var.ubuntu_version].http_directory

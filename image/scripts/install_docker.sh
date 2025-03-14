@@ -18,9 +18,9 @@ sudo apt-get update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 
-# ## For docker on Ubuntu +20.04
-# sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
-# sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+## For docker on Ubuntu +20.04
+sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
 
 # ## Disable other unnecessary services

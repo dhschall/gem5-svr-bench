@@ -5,11 +5,29 @@ authors:
 ---
 
 
-> The disk image build process is taken from [gem5-resources](https://github.com/gem5/gem5-resources/tree/stable/src/ubuntu-generic-diskimages).
+> [!NOTE]
+> The disk image build process is inherited from [gem5-resources](https://github.com/gem5/gem5-resources/tree/stable/src/ubuntu-generic-diskimages). See this documentation for further details.
 
 
 This document provides instructions to create the "x86-ubuntu" image and "arm-ubuntu" image.
-This image can be a 22.04 or 24.04 Ubuntu image.
+
+The disk images are based on Ubuntu and support both x86 and ARM architectures, specifically Ubuntu 22.04 and 24.04. These images have their .bashrc files modified to execute a script passed from the gem5 configuration files (using the m5 readfile instruction). The boot-exit test passes a script that causes the guest OS to terminate the simulation (using the m5 exit instruction) as soon as the system boots.
+
+## What's on the disk?
+
+- username: gem5
+- password: 12345
+
+- The `gem5-bridge`(m5) utility is installed in `/usr/local/bin/gem5-bridge`.
+- `libm5` is installed in `/usr/local/lib/`.
+- The headers for `libm5` are installed in `/usr/local/include/`.
+
+### Installed packages
+
+- `build-essential`
+- `git`
+- `scons`
+- `vim`
 
 ## Directory map
 
@@ -19,15 +37,11 @@ This image can be a 22.04 or 24.04 Ubuntu image.
   - `arm-22-04`: cloud-init Ubuntu autoinstall files for arm ubuntu 22.04 image.
   - `arm-24-04`: cloud-init Ubuntu autoinstall files for arm ubuntu 24.04 image.
   - `x86`: cloud-init Ubuntu autoinstall files for x86 ubuntu 22.04 and 24.04 images.
-- `x86-disk-image-24.04`: Disk image output directory for x86 ubuntu 24.04 image.
-- `x86-disk-image-22.04`: Disk image output directory for x86 ubuntu 22.04 image.
-- `arm-disk-image-24.04`: Disk image output directory for arm ubuntu 24.04 image.
-- `arm-disk-image-22.04`: Disk image output directory for arm ubuntu 22.04 image.
+
 
 ## Disk Image
 
-Run `build-x86.sh` with the argument `22.04` or `24.04` to build the respective x86 disk image in the `ubuntu-generic-diskimages` directory.
-Run `build-arm.sh` with the argument `22.04` or `24.04` to build the respective arm disk image in the `ubuntu-generic-diskimages` directory.
+Run `build-x86.sh` or `build-arm.sh` with the argument `22.04` or `24.04` to build the respective x86 or arm disk image in the `image` directory.
 Building the arm image assume that we are on an ARM machine as we use kvm to build the image.
 You can also run the packer file by adding the "use_kvm=false" in `build-arm.sh` in the `./packer build` command to build the disk image without KVM.
 This will download the packer binary, initialize packer, and build the disk image.
@@ -50,13 +64,6 @@ You will see `qemu.initialize: Waiting for SSH to become available...` while the
 You can watch the installation with a VNC viewer.
 See [Troubleshooting](#troubleshooting) for more information.
 
-## Kernel
-
-For the x86 disk images a kernel is also extracted from the disk image during the post-installation process.
-The extracted kernel does not have a version in its name, but the kernel version is printed before the extraction in `post-installation.sh` script. This extracted kernel can be used as a resource for gem5 simulations and is not limited to just be used with this disk image.
-The extracted kernel does not have a version its name, but the kernel version is printed as before the extraction in `post-installation.sh` script. This extracted kernel can be used as a resource for gem5 simulations and is not limited to just be used with this disk image.
-
-The kernel is extracted using packer's file provisioner with `direction=download` which would copy a file from the image to the host machine. The path specifying in the provisioner copies the file `/home/gem5/vmlinux-x86-ubuntu` to the output directory `disk-image`.
 
 ## Changes from the base Ubuntu image
 
@@ -70,12 +77,7 @@ The kernel is extracted using packer's file provisioner with `direction=download
   - The `gem5-bridge exit` command is run after the linux kernel initialization by default.
   - If the `no_systemd` boot option is passed, systemd is not run and the user is dropped to a terminal.
   - If the `interactive` boot option is passed, the `gem5-bridge exit` command is not run after the linux kernel initialization.
-- Networking is disabled by moving the `/etc/netplan/00-installer-config.yaml` or `/etc/netplan/50-cloud-init.yaml` file to `/etc/netplan/00-installer-config.yaml.bak` or `/etc/netplan/50-cloud-init.yaml.bak` respectively. The `systemd-networkd-wait-online.service` is also disabled.
-The x86 22.04 image should have `00-installer-config.yaml` while all the other disk images should have `50-cloud-init.yaml`.
-  - If you want to enable networking, you need to modify the disk image and move the file `/etc/netplan/00-installer-config.yaml.bak` or `/etc/netplan/50-cloud-init.yaml.bak` to `/etc/netplan/00-installer-config.yaml` or `/etc/netplan/50-cloud-init.yaml` depending on which config file the disk image contains.
-  To re-enable `systemd-networkd-wait-online.service`, first, unmask the service with `sudo systemctl unmask systemd-networkd-wait-online.service` and then enable the service to start with `sudo systemctl enable systemd-networkd-wait-online.service`.
-  If you require the service to start immediately without waiting for the next boot then also run the following:
-  `sudo systemctl start systemd-networkd-wait-online.service`.
+
 
 ### Customization of the boot Processes
 
@@ -112,9 +114,34 @@ provisioner "file" {
   }
 ```
 
-If you need to increase the size of the image when adding more libraries and files to the image update the size of the partition in the respective `http/*/user-data` file. Also, update the `disk_size` parameter in `post-installation.sh` to be at least one mega byte more than the size you defined in the `user-data` file.
+### Extending Disk Image Size
 
-**NOTE:** You can extend this disk image by modifying the `post-installation.sh` script, but it requires building the image from scratch.
+If you need to increase the size of the disk image when adding more libraries and files, follow these steps:
+
+1. **Update the Partition Size in `user-data`:**
+   - Modify the `size` of the partition in the relevant `http/*/user-data` file. The size in `user-data` is specified in **bytes**.
+
+2. **Update the `disk_size` Parameter in Packer:**
+   - Adjust the `disk_size` parameter in the Packer script to be at least **1 MB more** than the total size specified in the `user-data` file. Note that `disk_size` in Packer is specified in **megabytes**.
+
+#### Example: Setting the Main Partition Size to 10 GB
+
+To ensure that the **main partition** is exactly **10 GB**, follow these steps:
+
+1. **Calculate the Total Disk Size:**
+   - The total disk size needs to account for the main partition, boot partition, and additional space required by Packer.
+   - Add the respective boot partition size and Packer’s required space to **10 GB (10,000,000,000 bytes)**:
+     - **x86 boot partition:** `1,048,576 bytes` (1 MB).
+     - **ARM boot partition:** `564,133,888 bytes`.
+     - Additional space required: `1,048,576 bytes` (1 MB).
+   - Compute the total disk size:
+     - **x86 disk image:** `10,000,000,000 + 1,048,576 + 1,048,576 = 10,002,097,152 bytes`.
+     - **ARM disk image:** `10,000,000,000 + 564,133,888 + 1,048,576 = 10,565,182,464 bytes`.
+
+2. **Update the Packer `disk_size`:**
+   - Set `disk_size` to `10,003` MB for **x86**.
+   - Set `disk_size` to `10,566` MB for **ARM**.
+
 
 To take a pre-built image and add new files or packages, take a look at the following [documentation](https://www.gem5.org/documentation/gem5-stdlib/extending-disk-images).
 

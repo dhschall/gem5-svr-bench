@@ -27,18 +27,24 @@ Use the `install.sh` to install qemu along with other packages needed to build t
 To create a fresh base image with docker and all gem5 tools installed use the `build-<x86/arm>.sh` script in the image folder. This step has done only once and the same base disk image can be used for different workloads.
 
 > [!TIP]
-> The building process from the base disk image is inherited from [gem5-resources](https://github.com/gem5/gem5-resources). For further details refer to the build [README](./image/BUILDING.md).
+> The building process from the base disk image is inherited from [gem5-resources](https://github.com/gem5/gem5-resources). For further details refer to the build [README](./image/README.md) and the gem5-resources [documentation](https://github.com/gem5/gem5-resources/blob/stable/src/ubuntu-generic-diskimages/BUILDING.md).
 
-Use the corresponding script to build the x86 or Arm disk image. Note as the build process uses KVM you need to be on a Arm machine to build the arm disk image.
+Use the corresponding script to build the x86 or Arm disk image. 
+**Note** that the arm building process assumes you run on an arm machineas and use kvm. See the [README](./image/README.md#disk-image) for details to run without kvm.
 
 ```bash
-cd image
 # Build the disk image for x86 Ubuntu 22.04
+cd image
 sudo ./build-x86.sh 22.04   
+cd ..
+
+# Building the disk image for arm Ubuntu 22.04
+cd image
+sudo ./build-arm.sh 22.04   
 cd ..
 ```
 
-The build process should take less than 10 min after which the new base image will be placed in the `x86-disk-image-22-04` directory.
+Depending on the type of machine the building process can take a while (x86 ~10min, arm ~30min). Once completed the new base image will be placed in the `<x86/arm>-disk-image-22-04` directory.
 
 
 ### Install the benchmarks on the disks
