@@ -36,6 +36,7 @@ wkdir*
 packer
 image/artifacts/*
 *flash*
+kernel/linux/*
 m5out
 checkpoints
 results
