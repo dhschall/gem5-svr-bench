@@ -115,7 +115,7 @@ run-arm: $(FLASH0) $(FLASH1)
 		-cpu host -enable-kvm \
 		-smp ${CPUS} -m ${MEMORY} \
 		-device e1000,netdev=net0 \
-    	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:5555-:22  \
+    	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:8888-:22  \
 		-drive file=$(WK_DISK),format=raw \
 		-drive file=$(FLASH0),format=raw,if=pflash -drive file=$(FLASH1),format=raw,if=pflash 
 
@@ -124,11 +124,11 @@ run-arm: $(FLASH0) $(FLASH1)
 run-x86:
 	sudo qemu-system-x86_64 \
 		-nographic -serial mon:stdio \
-		-cpu host -enable-kvm \
+		-cpu "qemu64" -enable-kvm \
 		-smp ${CPUS} -m ${MEMORY} \
 		-drive file=$(WK_DISK),format=raw \
 		-device e1000,netdev=net0 \
-    	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:5555-:22 
+    	-netdev type=user,id=net0,hostfwd=tcp:127.0.0.1:8888-:22 
 
 
 

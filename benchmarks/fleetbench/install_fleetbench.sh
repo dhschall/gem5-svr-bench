@@ -2,7 +2,7 @@
 
 
 # Install dependencies
-sudo apt update && sudo apt install -y g++ zip unzip autoconf automake libtool
+sudo apt update && sudo apt install -y g++ zip unzip autoconf automake libtool zlib1g-dev
 
 ARCH=$(dpkg --print-architecture)
 
@@ -18,9 +18,9 @@ git clone https://github.com/google/fleetbench.git
 cd fleetbench
 mkdir -p build
 
-# VERSION=c1d0f72
+VERSION=cd20746b68b307b148a761c676d6400f2541082d
 
-# git checkout $VERSION
+git checkout $VERSION
 
 
 
@@ -30,7 +30,7 @@ BENCHMARKS=()
 BENCHMARKS+=("proto:proto_benchmark")
 BENCHMARKS+=("swissmap:swissmap_benchmark")
 BENCHMARKS+=("libc:mem_benchmark")
-BENCHMARKS+=("tcmalloc:empirical_driver")
+# BENCHMARKS+=("tcmalloc:empirical_driver") //BROKEN due to ARM TCMalloc being broken
 BENCHMARKS+=("compression:compression_benchmark")
 BENCHMARKS+=("hashing:hashing_benchmark")
 BENCHMARKS+=("stl:cord_benchmark")
@@ -41,7 +41,7 @@ BENCHMARKS+=("stl:cord_benchmark")
 for BENCHMARK in "${BENCHMARKS[@]}"; do
   BENCHMARK_NAME=$(echo $BENCHMARK | cut -d':' -f1)
   BENCHMARK_TARGET=$(echo $BENCHMARK | cut -d':' -f2)
-  bazel --output_base=build run --config=opt fleetbench/${BENCHMARK_NAME}:${BENCHMARK_TARGET}
+  bazel run --config=opt  --custom_malloc="@bazel_tools//tools/cpp:malloc" fleetbench/${BENCHMARK_NAME}:${BENCHMARK_TARGET}
 done
 
 

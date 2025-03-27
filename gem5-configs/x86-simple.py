@@ -146,7 +146,6 @@ def executeExit() -> bool:
     else:
         print("Simulation done")
         m5.stats.dump()
-        m5.exit()
 
 
 
@@ -169,7 +168,7 @@ delta = 100_000_000
 
 def maxInsts() -> bool:
     sim_instr = 0
-    max_instr = 1_000_000_000_000
+    max_instr = 10_000_000_000
 
     while True:
         m5.stats.dump()

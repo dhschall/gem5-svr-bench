@@ -44,7 +44,6 @@ fi
 
 KERNEL=./wkdir/kernel
 DISK_IMAGE=./wkdir/disk.img
-GEM5_CONFIG=./gem5-configs/x86-simple.py
 
 
 
@@ -59,15 +58,15 @@ sudo chown $USER /dev/kvm
 
 
 BENCHMARKS=()
-# BENCHMARKS+=("nodeapp")
-BENCHMARKS+=("nodeapp-nginx")
-# BENCHMARKS+=("proto")
-# BENCHMARKS+=("swissmap")
-# BENCHMARKS+=("libc")
-# BENCHMARKS+=("tcmalloc")
-# BENCHMARKS+=("compression")
-# BENCHMARKS+=("hashing")
-# BENCHMARKS+=("stl")
+BENCHMARKS+=("nodeapp")
+BENCHMARKS+=("nodeapp-nginx") 
+BENCHMARKS+=("proto")
+BENCHMARKS+=("swissmap")
+BENCHMARKS+=("libc")
+BENCHMARKS+=("tcmalloc")
+BENCHMARKS+=("compression")
+BENCHMARKS+=("hashing")
+BENCHMARKS+=("stl")
 
 
 
@@ -86,15 +85,16 @@ do
     ## Create output directory
     mkdir -p $OUTDIR
 
-    sudo $GEM5 \
+    screen -d -S "svr-$bm" -m bash -c "$GEM5 \
         --outdir=$OUTDIR \
             $GEM5_CONFIG \
                 --kernel $KERNEL \
                 --disk $DISK_IMAGE \
                 --workload ${bm} \
+                --cpu-type o3 \
+                --disable-fdp \
                 --mode=eval \
-            > $OUTDIR/gem5.log 2>&1 \
-            &
+            > $OUTDIR/gem5.log 2>&1"
 
 done
 

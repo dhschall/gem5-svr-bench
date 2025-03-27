@@ -42,3 +42,13 @@ checkpoints
 results
 *.img
 *.log
+image/qemu.log
+image/packer.log
+
+__pycache__
+
+collected
+
+client
+
+results.csv

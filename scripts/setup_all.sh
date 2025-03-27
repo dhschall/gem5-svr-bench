@@ -48,6 +48,11 @@ DISK_IMAGE=./wkdir/disk.img
 
 
 
+
+
+
+
+
 ################################################################################
 sudo chown $USER /dev/kvm
 
@@ -83,15 +88,15 @@ do
     ## Create output directory
     mkdir -p $OUTDIR
 
-    sudo $GEM5 \
+    screen -d -S "svr-setup-$bm" -m bash -c "$GEM5 \
         --outdir=$OUTDIR \
             $GEM5_CONFIG \
                 --kernel $KERNEL \
                 --disk $DISK_IMAGE \
                 --workload ${bm} \
                 --mode=setup \
-            > $OUTDIR/gem5.log 2>&1 \
-            &
+                --disable-fdp \
+            > $OUTDIR/gem5.log 2>&1"
 
 done
 

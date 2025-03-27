@@ -53,8 +53,8 @@ parser.add_argument(
     "-w","--workload",
     action="store",
     type=str,
-    default="nodeapp",
     choices=wlcfg.keys(),
+    default="nodeapp",
     help="""Specify a workload that should run in the simulator.""",
 )
 
@@ -91,5 +91,15 @@ parser.add_argument(
     choices=cpu_types.keys(),
 )
 
+parser.add_argument(
+    "--disable-fdp",
+    action="store_true",
+    help="Disable FDP to get evaluate baseline",
+)
 
 args = parser.parse_args()
+
+if not args.disable_fdp:
+    args.fdp = True
+else:
+    args.fdp = False

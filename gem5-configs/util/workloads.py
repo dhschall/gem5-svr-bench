@@ -81,7 +81,6 @@ m5 --addr=0x10010000 exit ## 6: Test done
 """
 
 
-
 wlcfg |= {
     "nodeapp": {
         "runscript": writeRunScript,
@@ -161,43 +160,43 @@ m5 exit ## 6: Test done
 
 """
 
-FLEETBENCH_BUILD_BASE="/home/gem5/fleetbench/build/execroot/com_google_fleetbench/bazel-out/k8-opt/bin/fleetbench"
+FLEETBENCH_BUILD_BASE="/home/gem5/fleetbench/bazel-bin/fleetbench"
 
 wlcfg |= {
 
     "proto": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/proto/proto_benchmark.runfiles/com_google_fleetbench/fleetbench/proto/proto_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/proto/proto_benchmark",
         "options" : "--benchmark_min_time=30s",
     },
     "swissmap": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/swissmap/swissmap_benchmark.runfiles/com_google_fleetbench/fleetbench/swissmap/swissmap_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/swissmap/swissmap_benchmark",
         "options" : "--benchmark_min_time=30s",
     },
     "libc": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/libc/mem_benchmark.runfiles/com_google_fleetbench/fleetbench/libc/mem_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/libc/mem_benchmark",
         "options" : f"--benchmark_min_time=1s --L1_data_size={32*1024} --L2_size={512*1024} --L3_size {512*1024}",
     },
     "tcmalloc": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/tcmalloc/empirical_driver.runfiles/com_google_fleetbench/fleetbench/tcmalloc/empirical_driver",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/tcmalloc/empirical_driver",
         "options" : "--benchmark_min_time=1s",
     },
     "compression": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/compression/compression_benchmark.runfiles/com_google_fleetbench/fleetbench/compression/compression_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/compression/compression_benchmark",
         "options" : "--benchmark_min_time=1s",
     },
     "hashing": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/hashing/hashing_benchmark.runfiles/com_google_fleetbench/fleetbench/hashing/hashing_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/hashing/hashing_benchmark",
         "options" : f"--benchmark_min_time=1s --L1_data_size {32*1024} --L2_size {512*1024} --L3_size {512*1024}",
     },
     "stl": {
         "runscript": writeFleetbenchRunScript,
-        "cmd" : f"{FLEETBENCH_BUILD_BASE}/stl/cord_benchmark.runfiles/com_google_fleetbench/fleetbench/stl/cord_benchmark",
+        "cmd" : f"{FLEETBENCH_BUILD_BASE}/stl/cord_benchmark",
         "options" : "--benchmark_min_time=30s",
     },
 
