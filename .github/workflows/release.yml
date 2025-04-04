@@ -32,42 +32,37 @@ on:
     tags:
       - 'v*'
 
-
 jobs:
-
   ## Prepare the release
-  # Create ID
   prepare-release:
     runs-on: ubuntu-latest
-    outputs:
-      rel_id:  ${{ steps.create_release.outputs.id }}
+
+    strategy:
+      matrix:
+        arch: [ amd64, arm64 ]
+        artifact:
+          - vmlinux-v5.15.59
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-
-
-
-      - name: Download Arm Kernel
+      - name: Download Kernel
         uses: dawidd6/action-download-artifact@v9
         with:
           workflow: build_kernel.yml
-          name: vmlinux-jammy-arm64
+          name: ${{ matrix.artifact }}-${{ matrix.arch }}
           path: tmp
 
-      - name: Download x86 Kernel
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: build_kernel.yml
-          name: vmlinux-jammy-amd64
-          path: tmp
+  ## Create the release
+  create-release:
+    needs: prepare-release
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
 
-
-
-
-      ## Create the release
       - name: Create Release
         uses: softprops/action-gh-release@v2
         id: create_release
@@ -76,11 +71,8 @@ jobs:
           prerelease: true
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref }}
-          # body_path: CHANGELOG.md
-          token: ${{ github.token }}
-          with:
-            files: |
-              tmp/vmlinux-jammy-amd64
-              tmp/vmlinux-jammy-arm64
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-
+          # Include all files prepared in the previous jobs
+          files: |
+            tmp/*
