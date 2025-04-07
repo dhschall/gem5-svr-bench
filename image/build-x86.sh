@@ -30,8 +30,11 @@ if [[ "$ubuntu_version" != "22.04" && "$ubuntu_version" != "24.04" ]]; then
     exit 1
 fi
 
+
+echo "Installing disk image with packer, see packer_x86.log for details"
+
 # Install the needed plugins
 /usr/local/bin/packer init ./packer-scripts/x86-ubuntu.pkr.hcl
 
 # Build the image with the specified Ubuntu version
-/usr/local/bin/packer build -var "ubuntu_version=${ubuntu_version}" ./packer-scripts/x86-ubuntu.pkr.hcl
+/usr/local/bin/packer build -var "ubuntu_version=${ubuntu_version}" ./packer-scripts/x86-ubuntu.pkr.hcl 1> packer_x86.log 2>&1 

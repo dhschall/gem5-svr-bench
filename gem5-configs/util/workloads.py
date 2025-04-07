@@ -46,15 +46,10 @@ def writeRunScript(cfg, cpu=1):
 ## Spin up Container
 echo "Start the container..."
 sudo docker compose -f /{home}/{dcfile} up -d
-sudo docker compose -f /{home}/{dcfile} up -d
-m5 exit ## 2: Started container
 
 echo "Pin {container} container to core {cpu}"
 sudo docker update {container} --cpuset-cpus {cpu}
 sleep 30
-
-sleep 5
-m5 exit ## 3: Pinned container
 
 
 # # The client will perform some functional warming
@@ -62,18 +57,12 @@ m5 exit ## 3: Pinned container
 # function again for the actual measurement.
 sudo GOGC=1000 /{home}/http-client -f /{home}/{urlfile} -url {test_ip} -c {conc} -n {n_invocations} -w {n_warming} -m5ops -v
 
-
-m5 exit ## 4: Stop client
-# -------------------------------------------
-
-
 ## Stop container
 # sudo docker compose -f /{home}/{dcfile} down
-# m5 --addr=0x10010000 exit ## 5: Container stop
 
 
 ## exit the simulations
-# m5 --addr=0x10010000 exit ## 6: Test done
+m5 exit ## Test done
 
 """
 
@@ -133,28 +122,20 @@ def writeFleetbenchRunScript(cfg, cpu=1):
 
 ## Define the image name of your function.
 
-# We use the 'm5 exit' magic instruction to indicate the
-# python script where in workflow the system currently is.
-
 sleep 3
 
 taskset -c {cpu} {workload} {options} &
 PID=$!
 
-m5 exit ## Pinned
-
 sleep 1
 m5 fail 4 ## take checkpoint
 
-
 wait $PID
-
 
 sleep 5
 
 ## exit the simulations
-m5 exit ## 6: Test done
-m5 exit ## 6: Test done
+m5 exit ## Test done
 
 """
 

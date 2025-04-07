@@ -41,7 +41,7 @@ TMP_DIR := $(ROOT)/image/tmp
 
 
 CLIENT 			:= $(TMP_DIR)/http-client
-DOWNLOAD_KERNEL := $(TMP_DIR)/kernel
+DOWNLOAD_KERNEL := $(TMP_DIR)/vendored-kernel
 BUILD_KERNEL 	:= $(TMP_DIR)/kernel
 
 ifeq ($(ARCH), arm64)
@@ -63,7 +63,7 @@ $(CLIENT): $(TMP_DIR)
 	
 
 $(DOWNLOAD_KERNEL): $(TMP_DIR)
-	wget -O $@ https://github.com/dhschall/gem5-svr-bench/releases/download/latest/vmlinux-v5.15.59-${ARCH} 
+	wget -O $@ https://github.com/dhschall/gem5-svr-bench/releases/latest/download/vmlinux-v5.15.59-${ARCH} 
 
 $(BUILD_KERNEL): $(TMP_DIR)
 	cd $(ROOT)/kernel && \
