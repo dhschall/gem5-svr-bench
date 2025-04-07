@@ -41,7 +41,7 @@ if [ -f "$config_file" ]; then
     # Install the needed plugins
     /usr/local/bin/packer init "$config_file"
     # Build the image
-    /usr/local/bin/packer build -var "architecture=$ARCH" "$config_file" 1> packer.log 2>&1
+    /usr/local/bin/packer build -var "architecture=$ARCH" "$config_file" 
 else
     echo "Error: Configuration file '$config_file' not found."
     exit 1

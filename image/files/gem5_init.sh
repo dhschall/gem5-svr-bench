@@ -1,15 +1,5 @@
 #!/bin/bash
 
-if [ $(uname -i) == "aarch64" ];
-then
-    echo "On Arm machine"
-    M5_ADDR="--addr=0x10010000"
-else
-    echo "On x86 machine"
-    M5_ADDR=""
-fi
-
-
 # mount /proc and /sys
 mount -t proc /proc /proc
 mount -t sysfs /sys /sys
@@ -17,9 +7,7 @@ mount -t sysfs /sys /sys
 cmdline=$(cat /proc/cmdline)
 no_systemd=false
 
-# gem5-bridge exit signifying that kernel is booted
 printf "Kernel booted, starting gem5 init...\n"
-gem5-bridge $M5_ADDR exit
 
 if [[ $cmdline == *"no_systemd"* ]]; then
     no_systemd=true

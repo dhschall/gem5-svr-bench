@@ -297,25 +297,14 @@ def workitems(start) -> Iterator[bool]:
 
 
 def executeExit() -> Iterator[bool]:
-
     if args.mode == "setup":
-
-        print("1: BOOTING complete")
-        yield False
-
-        print("2: Started container")
-        yield False
-
-        print("3: Pinned container")
-        yield False
-
-        print("6: Stop simulation")
+        print("Setup done")
+        m5.stats.dump()
         yield True
-
     else:
         print("Simulation done")
         m5.stats.dump()
-        m5.exit()
+        yield True
 
 
 
