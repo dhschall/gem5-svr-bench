@@ -1,5 +1,5 @@
 
-set -x -e
+set -x
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 ARCH=$(dpkg --print-architecture)
@@ -50,4 +50,5 @@ fi
 
 # Wait for the QEMU process to finish
 wait $QEMU_PID
-# sleep 2s
+
+rm -rf $SCRIPTPATH/tmp

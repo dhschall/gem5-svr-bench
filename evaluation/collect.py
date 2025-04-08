@@ -30,6 +30,8 @@ def parse_stats_file(file_path) -> dict[str, list[str]]:
             if len(chunks) < 2:
                 continue                
             key = chunks[0]
+            if key.__contains__('\0'):
+                continue
             if key not in datapoints:
                 datapoints[key] = []
             value = chunks[1]
