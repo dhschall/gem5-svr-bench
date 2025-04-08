@@ -49,6 +49,7 @@ __pycache__
 
 collected
 
-client
+client/output
+image/tmp
 
 results.csv

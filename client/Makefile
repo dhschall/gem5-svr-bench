@@ -26,7 +26,6 @@
 
 MKFILE := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT 		:= $(abspath $(dir $(MKFILE))/../)
-OUTPUT ?= http-client
 ARCH   ?= $(shell dpkg --print-architecture)
 
 # Go parameters
@@ -35,7 +34,8 @@ GOCMD=/usr/local/go/bin/go
 
 .PHONY: clean
 
-BIN=http-client
+OUTPUT_DIR=output/$(ARCH)
+BIN=$(OUTPUT_DIR)/http-client
 
 dep_install:
 	sudo apt-get update \
@@ -50,16 +50,14 @@ install_go:
 	rm go1.23.4.linux-$(ARCH).tar.gz
 	go version
 
+$(OUTPUT_DIR):
+	mkdir -p $@
 
-$(BIN): main.go
+$(BIN): $(OUTPUT_DIR) main.go
 	GOOS=linux GOARCH=$(ARCH) go build -o $@ -v main.go
 
 all: $(BIN)
 
 clean:
 	go clean
-
-
-save_output: all
-	cp $(BIN) $(OUTPUT)
-
+	rm -rf output

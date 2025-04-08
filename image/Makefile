@@ -59,7 +59,7 @@ $(TMP_DIR):
 $(CLIENT): $(TMP_DIR)
 	cd $(ROOT)/client && \
 	ARCH=$(ARCH) make all
-	cp $(ROOT)/client/http-client $@
+	cp $(ROOT)/client/output/$(ARCH)/http-client $@
 	
 
 $(DOWNLOAD_KERNEL): $(TMP_DIR)

@@ -18,10 +18,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# Install dependencies
 
 """
-This script further shows an example of booting an ARM based full system Ubuntu
+This script further shows an example of booting a full system Ubuntu
 disk image. The script boots a full system Ubuntu image and starts the function container.
 The function is invoked using a test client.
 
@@ -35,11 +34,11 @@ Usage
 -----
 
 ```
-scons build/<ALL|X86|ARM>/gem5.opt -j<NUM_CPUS>
-./build/<ALL|ARM|gem5.opt fs-fdp.py
+scons build/ALL/gem5.opt -j<NUM_CPUS>
+./build/ALL/gem5.opt fs-simple.py
     --mode <setup/eval> --workload <benchmark>
     --kernel <path-to-vmlinux> --disk <path-to-disk-image>
-    [--cpu <cpu-type>] [--fdp]
+    [--cpu <cpu-type>]
 ```
 
 """
@@ -47,26 +46,10 @@ from pathlib import Path
 from typing import Iterator
 
 import m5
-
-from m5.objects import (
-    SimpleBTB,
-    LTAGE,
-    TAGE_SC_L_64KB,
-    ITTAGE,
-    MultiPrefetcher,
-    TaggedPrefetcher,
-    FetchDirectedPrefetcher,
-    L2XBar,
-)
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
 from gem5.simulate.exit_event import ExitEvent
 from gem5.simulate.simulator import Simulator
 from gem5.utils.requires import requires
-from gem5.components.boards.abstract_board import AbstractBoard
-from gem5.components.cachehierarchies.classic.caches.l1icache import L1ICache
-from gem5.components.cachehierarchies.classic.caches.mmu_cache import MMUCache
-from gem5.components.cachehierarchies.classic.caches.l1dcache import L1DCache
-from gem5.components.cachehierarchies.classic.caches.l2cache import L2Cache
 from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import PrivateL1PrivateL2CacheHierarchy
 from gem5.components.memory import DualChannelDDR4_2400
 from gem5.components.processors.cpu_types import CPUTypes
@@ -88,7 +71,6 @@ if args.mode == "setup":
     Path("{}/{}".format(checkpoint_dir, args.workload)).mkdir(parents=True, exist_ok=True)
 
 
-
 # Here we setup the processor. For booting we take the KVM core and
 # for the evaluation we can take ATOMIC, TIMING or O3
 
@@ -99,144 +81,10 @@ processor = SimpleProcessor(
 )
 cpu = processor.cores[-1].core
 
-
-class BTB(SimpleBTB):
-    numEntries = 16*1024
-    associativity = 8
-
-
-
-class BPLTage(LTAGE):
-    instShiftAmt = 0
-    btb = BTB()
-    indirectBranchPred=ITTAGE()
-    requiresBTBHit = True
-
-
-class BPTageSCL(TAGE_SC_L_64KB):
-    instShiftAmt = 0
-    btb = BTB()
-    indirectBranchPred=ITTAGE()
-    requiresBTBHit = True
-
-
-
-
-if args.mode == "eval":
-    cpu.numROBEntries=576
-    cpu.LQEntries=190
-    cpu.SQEntries=120
-    cpu.numIQEntries=128*2
-    cpu.fetchBufferSize = 32
-
-    # Configure the branch predictor
-    cpu.branchPred = BPTageSCL()
-
-    if args.fdp:
-        # We need to configure the decoupled front-end with some specific parameters.
-        # First the fetch buffer and fetch target size. We want double the size of
-        # the fetch buffer to be able to run ahead of fetch
-        cpu.fetchTargetWidth = 64
-        cpu.numFTQEntries = 24
-        cpu.minInstSize = 1 if args.isa == "X86" else 4
-        cpu.decoupledFrontEnd = True
-        # cpu.fetchQueueSize = 16
-        cpu.branchPred.takenOnlyHistory=True
-
-
-
-# 2. Instruction prefetcher ---------------------------------------------
-# The decoupled front-end is only the first part.
-# Now we also need the instruction prefetcher which listens to the
-# insertions into the fetch target queue (FTQ) to issue prefetches.
-
-
-class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
-    def __init__(self, l1i_size, l1d_size, l2_size):
-        super().__init__(l1i_size, l1d_size, l2_size)
-
-    def incorporate_cache(self, board: AbstractBoard) -> None:
-        board.connect_system_port(self.membus.cpu_side_ports)
-
-        for _, port in board.get_memory().get_mem_ports():
-            self.membus.mem_side_ports = port
-
-        self.l1icaches = [
-            L1ICache(size=self._l1i_size)
-            for i in range(board.get_processor().get_num_cores())
-        ]
-        cpu1 = board.get_processor().cores[-1].core
-
-        self.l1icaches[-1].prefetcher = MultiPrefetcher()
-        if args.fdp:
-            self.l1icaches[-1].prefetcher.prefetchers.append(
-                FetchDirectedPrefetcher(use_virtual_addresses=True, cpu=cpu1)
-            )
-        self.l1icaches[-1].prefetcher.prefetchers.append(
-                TaggedPrefetcher(use_virtual_addresses=True)
-            )
-
-        for pf in self.l1icaches[-1].prefetcher.prefetchers:
-            pf.registerMMU(cpu1.mmu)
-
-        self.l1dcaches = [
-            L1DCache(size=self._l1d_size)
-            for i in range(board.get_processor().get_num_cores())
-        ]
-        self.l2buses = [
-            L2XBar() for i in range(board.get_processor().get_num_cores())
-        ]
-        self.l2caches = [
-            L2Cache(size=self._l2_size)
-            for i in range(board.get_processor().get_num_cores())
-        ]
-        self.mmucaches = [
-            MMUCache(size="8KiB")
-            for _ in range(board.get_processor().get_num_cores())
-        ]
-
-        self.mmubuses = [
-            L2XBar(width=64) for i in range(board.get_processor().get_num_cores())
-        ]
-
-
-        if board.has_coherent_io():
-            self._setup_io_cache(board)
-
-        for i, cpu in enumerate(board.get_processor().get_cores()):
-
-            cpu.connect_icache(self.l1icaches[i].cpu_side)
-            cpu.connect_dcache(self.l1dcaches[i].cpu_side)
-
-            self.l1icaches[i].mem_side = self.l2buses[i].cpu_side_ports
-            self.l1dcaches[i].mem_side = self.l2buses[i].cpu_side_ports
-            self.mmucaches[i].mem_side = self.l2buses[i].cpu_side_ports
-
-            self.mmubuses[i].mem_side_ports = self.mmucaches[i].cpu_side
-            self.l2buses[i].mem_side_ports = self.l2caches[i].cpu_side
-
-            self.membus.cpu_side_ports = self.l2caches[i].mem_side
-
-            cpu.connect_walker_ports(
-                self.mmubuses[i].cpu_side_ports, self.mmubuses[i].cpu_side_ports
-            )
-
-            if board.get_processor().get_isa() == ISA.X86:
-                int_req_port = self.membus.mem_side_ports
-                int_resp_port = self.membus.cpu_side_ports
-                cpu.connect_interrupt(int_req_port, int_resp_port)
-            else:
-                cpu.connect_interrupt()
-
-
-cache_hierarchy = CacheHierarchy(
-    l1i_size="32KiB", l1d_size="32KiB", l2_size="1MB"
+cache_hierarchy = PrivateL1PrivateL2CacheHierarchy(
+    l1d_size="32KiB", l1i_size="32KiB", l2_size="1MiB"
 )
 
-
-
-
-# Memory: Dual Channel DDR4 2400 DRAM device.
 memory = DualChannelDDR4_2400(size="3GiB")
 
 
@@ -278,33 +126,14 @@ else:
 
 
 
-def workitems(start) -> Iterator[bool]:
-    cnt = 1
-    while True:
-        if start:
-            print("Begin Invocation ", cnt)
-        else:
-            print("End Invocation ", cnt)
-            if args.mode == "eval":
-                m5.stats.dump()
-                m5.stats.reset()
-
-            cnt += 1
-
-        if args.mode == "eval" and cnt >= args.num_invocations:
-            yield True
-        yield False
-
-
 def executeExit() -> Iterator[bool]:
     if args.mode == "setup":
         print("Setup done")
-        m5.stats.dump()
-        yield True
     else:
         print("Simulation done")
-        m5.stats.dump()
-        yield True
+
+    m5.stats.dump()
+    yield True
 
 
 
@@ -334,7 +163,6 @@ def maxInsts() -> Iterator[bool]:
         m5.stats.reset()
         sim_instr += delta
         print("Simulated Instructions: ", sim_instr)
-        # simulator.schedule_max_insts(delta)
         processor.cores[-1]._set_inst_stop_any_thread(delta, True)
         if sim_instr >= max_instr:
             yield True
@@ -387,13 +215,6 @@ simulator = MySimulator(
 
 
 if args.mode == "eval":
-    # simulator.schedule_max_insts(delta)
     processor.cores[-1]._set_inst_stop_any_thread(delta, False)
 
-
-
-# Once the system successfully boots, it encounters an
-# `m5_exit instruction encountered`. We stop the simulation then. When the
-# simulation has ended you may inspect `m5out/board.terminal` to see
-# the stdout.
 simulator.run()

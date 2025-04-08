@@ -26,7 +26,7 @@
 set -xu
 
 GEM5=./../build/ALL/gem5.opt
-GEM5_CONFIG=./gem5-configs/fs-multiarch.py
+GEM5_CONFIG=./gem5-configs/fs-simple.py
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
