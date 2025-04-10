@@ -24,7 +24,7 @@ This script sets up a full system Ubuntu disk image with optional Fetch-Directed
 The script boots a full system Ubuntu image and starts the function container.
 The function is invoked using a test client.
 
-Please create the checkpoints first by running the fd-simple.py configuration.
+Please create the checkpoints first by running the fs-simple.py configuration.
 
 Usage
 -----
@@ -52,6 +52,7 @@ from m5.objects import (
     TaggedPrefetcher,
     FetchDirectedPrefetcher,
     L2XBar,
+    BranchPredictor,
 )
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
 from gem5.simulate.exit_event import ExitEvent
@@ -74,7 +75,7 @@ from util.arguments import *
 # This check ensures the gem5 binary is compiled to the correct ISA target.
 # If not, an exception will be thrown.
 requires(isa_required=isa_choices[args.isa])
-assert(args.mode == "eval", "This script is only for evaluation mode")
+assert args.mode == "eval", "This script is only for evaluation mode"
 
 arch = isa_to_arch(args.isa)
 
@@ -94,17 +95,19 @@ class BTB(SimpleBTB):
     associativity = 8
 
 
-class BPLTage(LTAGE):
+class BPLTage(BranchPredictor):
     instShiftAmt = 0
     btb = BTB()
-    indirectBranchPred=ITTAGE()
+    indirectBranchPred = ITTAGE()
+    conditionalBranchPred = LTAGE()
     requiresBTBHit = True
 
 
-class BPTageSCL(TAGE_SC_L_64KB):
+class BPTageSCL(BranchPredictor):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred=ITTAGE()
+    conditionalBranchPred = TAGE_SC_L_64KB()
     requiresBTBHit = True
 
 
