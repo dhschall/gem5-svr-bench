@@ -1,14 +1,15 @@
 diff --git a/kernel/Makefile b/kernel/Makefile
-index f2cc0d118a0b..767b5911eb4d 100644
+index 0e119c52a2cd..45a97f1899c2 100644
 --- a/kernel/Makefile
 +++ b/kernel/Makefile
 @@ -12,6 +12,9 @@ obj-y     = fork.o exec_domain.o panic.o \
- 	    notifier.o ksysfs.o cred.o reboot.o \
- 	    async.o range.o smpboot.o ucount.o
+            notifier.o ksysfs.o cred.o reboot.o \
+            async.o range.o smpboot.o ucount.o regset.o
  
-+# gem5 hooks for streamline support
++# gem5 hook for task infos
 +obj-y += m5struct.o
 +
+ obj-$(CONFIG_USERMODE_DRIVER) += usermode_driver.o
  obj-$(CONFIG_MODULES) += kmod.o
  obj-$(CONFIG_MULTIUSER) += groups.o
  
