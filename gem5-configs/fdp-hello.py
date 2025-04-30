@@ -64,6 +64,7 @@ from m5.objects import (
     LTAGE,
     TaggedPrefetcher,
     FetchDirectedPrefetcher,
+    BranchPredictor,
     L2XBar,
 )
 
@@ -146,9 +147,10 @@ class BTB(SimpleBTB):
     associativity = 4
 
 
-class BPLTage(LTAGE):
-    instShiftAmt = 0
+class BPLTage(BranchPredictor):
     btb = BTB()
+    conditionalBranchPred = LTAGE()
+    instShiftAmt = 0
     requiresBTBHit = True
 
 
