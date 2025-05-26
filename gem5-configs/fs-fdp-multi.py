@@ -153,9 +153,9 @@ if args.fdp:
     cpu.LQEntries = 190 * factor
     cpu.SQEntries = 120 * factor
 
-    cpu.maxPrefetchesPerCycle=4 * factor
-    cpu.maxOutstandingTranslations=16 * factor
-    cpu.maxOutstandingPrefetches=16 * factor
+    cpu.maxPrefetchesPerCycle= 2* args.ppc
+    cpu.maxOutstandingTranslations=8 * args.ppc
+    cpu.maxOutstandingPrefetches=8 * args.ppc
     
     scale_registers(cpu, factor)
 
