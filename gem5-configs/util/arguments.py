@@ -100,6 +100,28 @@ parser.add_argument(
     choices=isa_choices.keys(),
 )
 
+parser.add_argument(
+    "--width",
+    type=int,
+    default=12,
+    help="The width of the pipeline to simulate."
+)
+
+
+parser.add_argument(
+    "--factor",
+    type=int,
+    default=1,
+    help="The factor to scale the pipeline capacity."
+)
+
+parser.add_argument(
+    "--ppc",
+    type=int,
+    default=1, 
+    help="The number of prediction per cycle to simulate."
+)
+
 args = parser.parse_args()
 
 

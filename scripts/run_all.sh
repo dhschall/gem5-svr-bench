@@ -25,17 +25,21 @@
 
 set -xu
 
-GEM5=./../build/ALL/gem5.opt
-GEM5_CONFIG=./gem5-configs/fs-simple.py
+GEM5=./../build/ARM/gem5.opt
+GEM5_CONFIG=./gem5-configs/fs-fdp-multi.py
 
-ARCH="amd64"
+WIDTH=32
+FACTOR=4
+PREDPERCYCLE=4
+
+ARCH="arm64"
 CPU_TYPE="o3"
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
-BENCHMARKS+=("nodeapp-nginx") 
-BENCHMARKS+=("mediawiki")
-BENCHMARKS+=("mediawiki-nginx")
+BENCHMARKS+=("nodeapp-nginx")
+#BENCHMARKS+=("mediawiki")
+#BENCHMARKS+=("mediawiki-nginx") 
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
@@ -44,6 +48,22 @@ BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
 
+
+# Parsing args
+
+while getopts "w:f:p:" opt; do
+    case $opt in
+    w) WIDTH=$OPTARG ;;
+    f) FACTOR=$OPTARG ;;
+    p) PREDPERCYCLE=$OPTARG ;;
+    ?) echo "invalid option" ;;
+    esac
+done
+
+
+# Set experiment name
+
+EXPERIMENT="w${WIDTH}_ppc${PREDPERCYCLE}"
 
 # ---------------------
 
@@ -61,8 +81,6 @@ fi
 
 KERNEL="./wkdir/$ARCH/kernel"
 DISK_IMAGE="./wkdir/$ARCH/disk.img"
-
-EXPERIMENT="$1"
 
 # Define the output file of your run
 RESULTS_DIR="./results/$ARCH/$EXPERIMENT"
@@ -89,6 +107,10 @@ do
     pueue add -g "$PGROUP" -l "$EXPERIMENT-$bm" -- "$GEM5 \
         --outdir=$OUTDIR \
             $GEM5_CONFIG \
+                --width $WIDTH \
+                --factor $FACTOR \
+                --ppc $PREDPERCYCLE \
+                --fdp \
                 --kernel $KERNEL \
                 --disk $DISK_IMAGE \
                 --workload ${bm} \
