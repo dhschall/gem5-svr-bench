@@ -91,12 +91,21 @@ processor = SimpleProcessor(
 )
 cpu = processor.cores[-1].core
 
-                                
+
+#This function rounds the number to the closet power of 2
+def RTCPO2(n):
+    if n < 1:
+        return 1
+
+    lower = 1 << (n.bit_length() - 1)
+    upper = lower << 1
+
+    return lower if (n - lower) < (upper - n) else upper                                
 
 memory = DualChannelDDR4_2400(size="3GiB")
 
 class BTB(SimpleBTB):
-    numEntries = 16*1024 * factor
+    numEntries = RTCPO2(16*1024 * factor)
    # associativity = 8
 
 
@@ -212,7 +221,7 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
             for i in range(board.get_processor().get_num_cores())
         ]
         self.mmucaches = [
-            MMUCache(size="{}KiB".format(8*factor))
+            MMUCache(size="{}KiB".format(RTCPO2(8*factor)))
             for _ in range(board.get_processor().get_num_cores())
         ]
 
@@ -251,7 +260,7 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
 
 
 cache_hierarchy = CacheHierarchy(
-    l1i_size="{}KiB".format(32*factor), l1d_size="{}KiB".format(32*factor), l2_size="{}MB".format(factor)
+    l1i_size="{}KiB".format(RTCPO2(32*factor)), l1d_size="{}KiB".format(RTCPO2(32*factor)), l2_size="{}MB".format(RTCPO2(factor))
 )
 
 
