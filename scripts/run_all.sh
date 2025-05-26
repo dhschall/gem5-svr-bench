@@ -63,7 +63,7 @@ done
 
 # Set experiment name
 
-EXPERIMENT="w${WIDTH}_ppc${PREDPERCYCLE}"
+EXPERIMENT="w${WIDTH}_ppc${PREDPERCYCLE}_f${FACTOR}"
 
 # ---------------------
 
