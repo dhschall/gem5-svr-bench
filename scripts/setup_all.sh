@@ -25,14 +25,12 @@
 
 set -xu
 
-GEM5=./../build/ALL/gem5.opt
+GEM5=./../build/ARM/gem5.opt
 GEM5_CONFIG=./gem5-configs/fs-simple.py
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
 BENCHMARKS+=("nodeapp-nginx")
-BENCHMARKS+=("mediawiki")
-BENCHMARKS+=("mediawiki-nginx")
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")

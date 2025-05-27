@@ -156,11 +156,11 @@ if args.fdp:
     cpu.fetchQueueSize = 128 * factor
     cpu.fetchTargetWidth = 64
     cpu.minInstSize = 1 if args.isa == "X86" else 4
-    cpu.numFTQEntries = 40 * factor
+    cpu.numFTQEntries = 50 * factor
     cpu.numROBEntries = 576 * factor
-    cpu.numIQEntries = 128*2 * factor
+    cpu.numIQEntries = 256*2 * factor
     cpu.LQEntries = 190 * factor
-    cpu.SQEntries = 120 * factor
+    cpu.SQEntries = 200 * factor
 
     cpu.maxPrefetchesPerCycle= 2* args.ppc
     cpu.maxOutstandingTranslations=8 * args.ppc
