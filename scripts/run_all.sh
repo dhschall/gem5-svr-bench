@@ -25,7 +25,7 @@
 
 set -xu
 
-GEM5=./../build/ARM/gem5.opt
+GEM5=./../build/ARM/gem5.fast
 GEM5_CONFIG=./gem5-configs/fs-fdp-multi.py
 
 WIDTH=32
@@ -38,8 +38,6 @@ CPU_TYPE="o3"
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
 BENCHMARKS+=("nodeapp-nginx")
-#BENCHMARKS+=("mediawiki")
-#BENCHMARKS+=("mediawiki-nginx") 
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
@@ -47,6 +45,16 @@ BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
+BENCHMARKS+=("dacapo-cassandra")
+BENCHMARKS+=("dacapo-h2")
+BENCHMARKS+=("dacapo-h2o")
+BENCHMARKS+=("dacapo-kafka")
+BENCHMARKS+=("dacapo-luindex")
+BENCHMARKS+=("dacapo-lusearch")
+BENCHMARKS+=("dacapo-spring")
+BENCHMARKS+=("dacapo-tomcat")
+BENCHMARKS+=("renaissance-http")
+BENCHMARKS+=("renaissance-chirper")
 
 
 # Parsing args

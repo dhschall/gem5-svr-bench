@@ -224,3 +224,134 @@ wlcfg |= {
         "runscript": writeVerilatorRunScript,
     },
 }
+
+### Java Apps ###################################################################
+
+
+def writeJavaAppRunScript(cfg, cpu=1):
+    # home = "root"
+    home = "home/gem5"
+    wl = cfg["workload"]
+    return f"""
+#!/bin/bash
+
+## Define the image name of your function.
+
+# We use the 'm5 exit' magic instruction to indicate the
+# python script where in workflow the system currently is.
+
+## 1: BOOTING complete
+set -x
+
+sleep 3
+
+CMD="java -jar {cfg["jarfile"]} {wl} {cfg["args"]}" 
+
+taskset --cpu-list {cpu} $CMD > /tmp/{wl}.log 2>&1 &
+BMPID=$!
+
+
+i=0
+while true; do
+    if grep -q '{cfg["match_string"]}' /tmp/{wl}.log; then
+        echo "Found the match string in the log file."
+        break
+    fi
+    sleep 1
+    i=$((i+1))
+    if [ $i -gt 10 ]; then
+        cat /tmp/{wl}.log
+        i=0
+    fi
+done
+
+sleep 1
+m5 fail 4 ## take checkpoint
+
+wait $BMPID
+
+m5 writefile /tmp/{wl}.log workload.log
+
+## exit the simulations
+m5 exit ## 6: Test done
+
+"""
+
+
+wlcfg |= {
+
+    "dacapo-cassandra": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "cassandra",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "cassandra starting =====",
+    },
+    "dacapo-h2": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "h2",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "h2 starting =====",
+    },
+    "dacapo-h2o": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "h2o",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "h2o starting =====",
+    },
+    "dacapo-kafka": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "kafka",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "kafka starting =====",
+    },
+    "dacapo-luindex": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "luindex",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "luindex starting =====",
+    },
+    "dacapo-lusearch": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "lusearch",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "lusearch starting =====",
+    },
+    "dacapo-spring": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "spring",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "spring starting =====",
+    },
+    "dacapo-tomcat": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "tomcat",
+        "jarfile": "dacapo.jar",
+        "args": "-n 5",
+        "match_string": "tomcat starting =====",
+    },
+
+
+    "renaissance-chirper": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "finagle-chirper",
+        "jarfile": "renaissance.jar",
+        "args": "-r 10",
+        "match_string": "iteration 7 started ======",
+    },
+    "renaissance-http": {
+        "runscript": writeJavaAppRunScript,
+        "workload": "finagle-http",
+        "jarfile": "renaissance.jar",
+        "args": "-r 10",
+        "match_string": "iteration 7 started ======",
+    },
+
+
+}
