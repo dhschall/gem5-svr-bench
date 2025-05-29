@@ -126,6 +126,8 @@ class BPTageSCL(TAGE_SC_L_64KB):
     #indirectBranchPred=ITTAGE()
     requiresBTBHit = True
 
+# -------------- Backend Configutation --------- #
+#-----------------------------------------------
 class S_IntALU(IntALU):
     count = 6 * factor
 
@@ -173,6 +175,8 @@ class S_FUPool(FUPool):
         S_RdWrPort(),
         S_IprPort(),
     ]
+#-----------------------------------------------
+#-----------------------------------------------#
 
 def scale_registers(cpu_, factor):
 
@@ -210,15 +214,15 @@ if args.fdp:
     cpu.numFTQEntries = 50 * factor
     cpu.numROBEntries = 576 * factor
     cpu.numIQEntries = 256*2 * factor
-    cpu.LQEntries = 220 * factor
-    cpu.SQEntries = 220 * factor
-    cpu.LFSTSize = 1024 * factor
-    cpu.SSITSize = "{}".format(1024*factor)
+    cpu.LQEntries = 200 * factor
+    cpu.SQEntries = 200 * factor
+    cpu.LFSTSize = RTCPO2(1024 * factor)
+    cpu.SSITSize = "{}".format(RTCPO2(1024 * factor))
     cpu.maxPrefetchesPerCycle= 2* args.ppc
     cpu.maxOutstandingTranslations=8 * args.ppc
     cpu.maxOutstandingPrefetches=8 * args.ppc
     cpu.fuPool = S_FUPool()
-    scale_registers(cpu, factor*1.5)
+    scale_registers(cpu, factor*1.15)
 
     cpu.numPredPerCycle = args.ppc
 
