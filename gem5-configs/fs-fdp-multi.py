@@ -210,8 +210,8 @@ if args.fdp:
     cpu.numFTQEntries = 50 * factor
     cpu.numROBEntries = 576 * factor
     cpu.numIQEntries = 256*2 * factor
-    cpu.LQEntries = 190 * factor
-    cpu.SQEntries = 200 * factor
+    cpu.LQEntries = 220 * factor
+    cpu.SQEntries = 220 * factor
     cpu.LFSTSize = 1024 * factor
     cpu.SSITSize = "{}".format(1024*factor)
     cpu.maxPrefetchesPerCycle= 2* args.ppc
