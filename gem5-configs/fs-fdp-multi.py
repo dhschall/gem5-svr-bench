@@ -64,12 +64,17 @@ from gem5.components.cachehierarchies.classic.caches.l1dcache import L1DCache
 from gem5.components.cachehierarchies.classic.caches.l2cache import L2Cache
 from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import PrivateL1PrivateL2CacheHierarchy
 from gem5.components.memory import DualChannelDDR4_2400
-from gem5.components.processors.cpu_types import CPUTypes
+from m5.objects.FuncUnit import *
+from m5.objects.FuncUnitConfig import *
+from m5.objects.FUPool import *
+
 from gem5.components.processors.simple_processor import SimpleProcessor
 
 
 from util.workloads import *
 from util.arguments import *
+
+from math import ceil
 
 # This check ensures the gem5 binary is compiled to the correct ISA target.
 # If not, an exception will be thrown.
@@ -115,21 +120,67 @@ class BPLTage(LTAGE):
     #indirectBranchPred=ITTAGE()
     requiresBTBHit = True
 
-
 class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     #indirectBranchPred=ITTAGE()
     requiresBTBHit = True
 
+class S_IntALU(IntALU):
+    count = 6 * factor
+
+class S_IntMultDiv(IntMultDiv):
+    count = 2 * factor
+
+class S_FP_ALU(FP_ALU):
+    count = 4 * factor
+
+class S_FP_MultDiv(FP_MultDiv):
+    count = 2 * factor
+
+class S_SIMD_Unit(SIMD_Unit):
+    count = 4 * factor
+
+class S_Matrix_Unit(Matrix_Unit):
+    count = 1 * factor
+
+class S_PredALU(PredALU):
+    count = 1 * factor
+
+class S_ReadPort(ReadPort):
+    count = 1 * factor
+
+class S_WritePort(WritePort):
+    count = 1 * factor
+
+class S_RdWrPort(RdWrPort):
+    count = 4 * factor
+
+class S_IprPort(IprPort):
+    count = 1 * factor
+
+class S_FUPool(FUPool):
+    FUList = [
+        S_IntALU(),
+        S_IntMultDiv(),
+        S_FP_ALU(),
+        S_FP_MultDiv(),
+        S_ReadPort(),
+        S_SIMD_Unit(),
+        S_Matrix_Unit(),
+        S_PredALU(),
+        S_WritePort(),
+        S_RdWrPort(),
+        S_IprPort(),
+    ]
 
 def scale_registers(cpu_, factor):
 
-    cpu_.numPhysIntRegs = 256 * factor
-    cpu_.numPhysFloatRegs = 256 * factor
-    cpu_.numPhysVecRegs = 256 * factor
-    cpu_.numPhysVecPredRegs = 32 * factor
-    cpu_.numPhysMatRegs = 2 * factor
+    cpu_.numPhysIntRegs = ceil(256 * factor)
+    cpu_.numPhysFloatRegs = ceil(256 * factor)
+    cpu_.numPhysVecRegs = ceil(256 * factor)
+    cpu_.numPhysVecPredRegs = ceil(32 * factor)
+    cpu_.numPhysMatRegs = ceil(2 * factor)
     cpu_.numPhysCCRegs = 5*cpu_.numPhysIntRegs
     return
 
@@ -161,12 +212,13 @@ if args.fdp:
     cpu.numIQEntries = 256*2 * factor
     cpu.LQEntries = 190 * factor
     cpu.SQEntries = 200 * factor
-
+    cpu.LFSTSize = 1024 * factor
+    cpu.SSITSize = "{}".format(1024*factor)
     cpu.maxPrefetchesPerCycle= 2* args.ppc
     cpu.maxOutstandingTranslations=8 * args.ppc
     cpu.maxOutstandingPrefetches=8 * args.ppc
-    
-    scale_registers(cpu, factor)
+    cpu.fuPool = S_FUPool()
+    scale_registers(cpu, factor*1.5)
 
     cpu.numPredPerCycle = args.ppc
 
