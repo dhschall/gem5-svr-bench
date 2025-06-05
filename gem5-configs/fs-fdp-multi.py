@@ -47,7 +47,8 @@ from m5.objects import (
     SimpleBTB,
     LTAGE,
     TAGE_SC_L_64KB,
-   # ITTAGE,
+    TAGE_SC_L_TAGE_64KB,
+    ITTAGE,
     MultiPrefetcher,
     TaggedPrefetcher,
     FetchDirectedPrefetcher,
@@ -120,10 +121,15 @@ class BPLTage(LTAGE):
     #indirectBranchPred=ITTAGE()
     requiresBTBHit = True
 
+class TAGE_Inf_N(TAGE_SC_L_TAGE_64KB):
+    logTagTableSize = 20
+    shortTagsSize = 20
+    longTagsSize = 20 
 class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
-    #indirectBranchPred=ITTAGE()
+    indirectBranchPred = ITTAGE()
+ #   tage = TAGE_Inf_N()
     requiresBTBHit = True
 
 # -------------- Backend Configutation --------- #
