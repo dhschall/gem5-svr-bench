@@ -44,6 +44,7 @@ from typing import Iterator
 import m5
 
 from m5.objects import (
+    Cache,
     SimpleBTB,
     LTAGE,
     TAGE_SC_L_64KB,
@@ -51,7 +52,6 @@ from m5.objects import (
     ITTAGE,
     MultiPrefetcher,
     TaggedPrefetcher,
-    FetchDirectedPrefetcher,
     L2XBar,
 )
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
@@ -63,8 +63,10 @@ from gem5.components.cachehierarchies.classic.caches.l1icache import L1ICache
 from gem5.components.cachehierarchies.classic.caches.mmu_cache import MMUCache
 from gem5.components.cachehierarchies.classic.caches.l1dcache import L1DCache
 from gem5.components.cachehierarchies.classic.caches.l2cache import L2Cache
+from gem5.components.cachehierarchies.classic.private_l1_cache_hierarchy import PrivateL1CacheHierarchy
 from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import PrivateL1PrivateL2CacheHierarchy
 from gem5.components.memory import DualChannelDDR4_2400
+from gem5.components.memory.simple import SingleChannelSimpleMemory
 from m5.objects.FuncUnit import *
 from m5.objects.FuncUnitConfig import *
 from m5.objects.FUPool import *
@@ -108,10 +110,8 @@ def RTCPO2(n):
 
     return lower if (n - lower) < (upper - n) else upper                                
 
-memory = DualChannelDDR4_2400(size="3GiB")
-
 class BTB(SimpleBTB):
-    numEntries = RTCPO2(16*1024 * factor)
+    numEntries = RTCPO2(32 * 1024 * factor)
    # associativity = 8
 
 
@@ -129,7 +129,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
- #   tage = TAGE_Inf_N()
+    tage = TAGE_Inf_N()
     requiresBTBHit = True
 
 # -------------- Backend Configutation --------- #
@@ -217,6 +217,8 @@ if args.fdp:
     cpu.fetchQueueSize = 128 * factor
     cpu.fetchTargetWidth = 64
     cpu.minInstSize = 1 if args.isa == "X86" else 4
+
+    # Set size if relevant buffers
     cpu.numFTQEntries = 50 * factor
     cpu.numROBEntries = 576 * factor
     cpu.numIQEntries = 256*2 * factor
@@ -224,16 +226,112 @@ if args.fdp:
     cpu.SQEntries = 200 * factor
     cpu.LFSTSize = RTCPO2(1024 * factor)
     cpu.SSITSize = "{}".format(RTCPO2(1024 * factor))
+
+    # number of set number of prefetches issued by fetch stage
     cpu.maxPrefetchesPerCycle= 2* args.ppc
     cpu.maxOutstandingTranslations=8 * args.ppc
     cpu.maxOutstandingPrefetches=8 * args.ppc
+
+    # Custom functional unit configuration
     cpu.fuPool = S_FUPool()
+
+    # Return address stack size
+    cpu.branchPred.ras.numEntries=64
+
+    # Scaling the number of registers used for renaming
     scale_registers(cpu, factor*1.15)
 
     cpu.numPredPerCycle = args.ppc
 
+    #Setting the width of the different stages  
     set_width (cpu, width)
    
+##############################################################
+# Cache Hierarchy
+##############################################################
+
+class L1ICacheGiant(Cache):
+    size = "32MiB"
+    assoc = 8
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
+    mshrs = 16
+    tgts_per_mshr = 20
+    writeback_clean = True
+
+
+class L1DCacheGiant(Cache):
+    size = "32MiB"
+    assoc = 8
+    tag_latency = 1
+    data_latency = 1
+    response_latency = 1
+    mshrs = 32
+    tgts_per_mshr = 20
+    writeback_clean = True
+
+
+class CacheHierarchyGiant(PrivateL1CacheHierarchy):
+    def __init__(self):
+        super().__init__(l1d_size="", l1i_size="")
+
+    def incorporate_cache(self, board: AbstractBoard) -> None:
+        board.connect_system_port(self.membus.cpu_side_ports)
+
+        for _, port in board.get_mem_ports():
+            self.membus.mem_side_ports = port
+
+        self.l1icaches = [
+            L1ICacheGiant()
+            for i in range(board.get_processor().get_num_cores())
+        ]
+
+        self.l1dcaches = [
+            L1DCacheGiant()
+            for i in range(board.get_processor().get_num_cores())
+        ]
+        # ITLB Page walk caches
+        self.iptw_caches = [
+            MMUCache(size="8MiB")
+            for _ in range(board.get_processor().get_num_cores())
+        ]
+        # DTLB Page walk caches
+        self.dptw_caches = [
+            MMUCache(size="8MiB")
+            for _ in range(board.get_processor().get_num_cores())
+        ]
+
+        if board.has_coherent_io():
+            self._setup_io_cache(board)
+
+        for i, cpu in enumerate(board.get_processor().get_cores()):
+            cpu.connect_icache(self.l1icaches[i].cpu_side)
+            cpu.connect_dcache(self.l1dcaches[i].cpu_side)
+
+            self.l1icaches[i].mem_side = self.membus.cpu_side_ports
+            self.l1dcaches[i].mem_side = self.membus.cpu_side_ports
+
+            self.iptw_caches[i].mem_side = self.membus.cpu_side_ports
+            self.dptw_caches[i].mem_side = self.membus.cpu_side_ports
+
+            cpu.connect_walker_ports(
+                self.iptw_caches[i].cpu_side, self.dptw_caches[i].cpu_side
+            )
+
+            if board.get_processor().get_isa() == ISA.X86:
+                int_req_port = self.membus.mem_side_ports
+                int_resp_port = self.membus.cpu_side_ports
+                cpu.connect_interrupt(int_req_port, int_resp_port)
+            else:
+                cpu.connect_interrupt()
+
+
+cache_hierarchy = CacheHierarchyGiant()
+
+# Memory: Dual Channel DDR4 2400 DRAM device.
+# memory = DualChannelDDR4_2400(size="3GiB")
+memory = SingleChannelSimpleMemory(size="3GiB",latency="0ns", latency_var="0ns", bandwidth="300GiB/s")
 
 
 
@@ -321,9 +419,9 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
                 cpu.connect_interrupt()
 
 
-cache_hierarchy = CacheHierarchy(
+""" cache_hierarchy = CacheHierarchy(
     l1i_size="{}KiB".format(RTCPO2(32*factor)), l1d_size="{}KiB".format(RTCPO2(32*factor)), l2_size="{}MB".format(RTCPO2(factor))
-)
+) """
 
 
 
