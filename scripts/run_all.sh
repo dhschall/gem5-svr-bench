@@ -31,6 +31,7 @@ GEM5_CONFIG=./gem5-configs/fs-fdp-multi.py
 WIDTH=32
 FACTOR=4
 PREDPERCYCLE=4
+SET=""
 
 ARCH="arm64"
 CPU_TYPE="o3"
@@ -59,11 +60,12 @@ BENCHMARKS+=("renaissance-chirper")
 
 # Parsing args
 
-while getopts "w:f:p:" opt; do
+while getopts "w:f:p:s:" opt; do
     case $opt in
     w) WIDTH=$OPTARG ;;
     f) FACTOR=$OPTARG ;;
     p) PREDPERCYCLE=$OPTARG ;;
+    s) SET=$OPTARG ;;
     ?) echo "invalid option" ;;
     esac
 done
@@ -93,6 +95,10 @@ DISK_IMAGE="./wkdir/$ARCH/disk.img"
 # Define the output file of your run
 RESULTS_DIR="./results/$ARCH/$EXPERIMENT"
 
+if [ "$SET" != "" ]; then 
+    RESULTS_DIR="./results/$ARCH/$SET/$EXPERIMENT"
+fi
+
 if ! pgrep -x "pueued" > /dev/null
 then
     pueued -d
@@ -100,6 +106,9 @@ fi
 
 PGROUP="$ARCH-$EXPERIMENT"
 
+if [ "$SET" != "" ]; then 
+    PGROUP="$ARCH-$SET-$EXPERIMENT"
+fi
 pueue group add -p 100 "$PGROUP" || true
 
 sudo chown $(id -u) /dev/kvm
