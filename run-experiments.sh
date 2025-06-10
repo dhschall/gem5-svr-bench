@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SET="perfect"
+SET=""
 
 ./scripts/run_all.sh -w 12 -f 1 -p 1 -s "$SET"
 ./scripts/run_all.sh -w 12 -f 1 -p 2 -s "$SET"
