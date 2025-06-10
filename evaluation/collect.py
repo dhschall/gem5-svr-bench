@@ -45,6 +45,7 @@ def main():
     
     parser = argparse.ArgumentParser(prog='Collector')
     parser.add_argument('--arch', type=str, default=our_arch, help='Architecture name')
+    parser.add_argument('--set', type=str, default='', help='name of the experiment set')
     parser.add_argument('experiments', nargs="+", help='Name of experiments')
 
     args = parser.parse_args()
@@ -52,7 +53,7 @@ def main():
     result: pd.DataFrame = pd.DataFrame()
 
     for experiment in args.experiments:
-        benchmarks = glob.glob(f'../results/{args.arch}/{experiment}/*/stats.txt')
+        benchmarks = glob.glob(f'../results/{args.arch}/{args.set}/{experiment}/*/stats.txt')
 
         for benchmark in benchmarks:
             # The benchmark name is assumed to be the immediate subdirectory name.
@@ -72,7 +73,7 @@ def main():
             result = pd.concat([result, df], ignore_index=True)
     
     # Save the result to a CSV file
-    result.to_csv(f'results.csv', index=False)
+    result.to_csv(f'{args.set}_results.csv' if args.set != '' else f'results.csv', index=False)
 
 
 
