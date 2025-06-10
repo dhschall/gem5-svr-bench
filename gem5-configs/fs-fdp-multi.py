@@ -327,11 +327,11 @@ class CacheHierarchyGiant(PrivateL1CacheHierarchy):
                 cpu.connect_interrupt()
 
 
-cache_hierarchy = CacheHierarchyGiant()
+#cache_hierarchy = CacheHierarchyGiant()
 
 # Memory: Dual Channel DDR4 2400 DRAM device.
-# memory = DualChannelDDR4_2400(size="3GiB")
-memory = SingleChannelSimpleMemory(size="3GiB",latency="0ns", latency_var="0ns", bandwidth="300GiB/s")
+memory = DualChannelDDR4_2400(size="3GiB")
+#memory = SingleChannelSimpleMemory(size="3GiB",latency="0ns", latency_var="0ns", bandwidth="300GiB/s")
 
 
 
@@ -419,9 +419,9 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
                 cpu.connect_interrupt()
 
 
-""" cache_hierarchy = CacheHierarchy(
+cache_hierarchy = CacheHierarchy(
     l1i_size="{}KiB".format(RTCPO2(32*factor)), l1d_size="{}KiB".format(RTCPO2(32*factor)), l2_size="{}MB".format(RTCPO2(factor))
-) """
+)
 
 
 
