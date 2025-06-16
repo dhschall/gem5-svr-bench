@@ -96,7 +96,7 @@ DISK_IMAGE="./wkdir/$ARCH/disk.img"
 RESULTS_DIR="./results/$ARCH/$EXPERIMENT"
 
 if [ "$SET" != "" ]; then 
-    RESULTS_DIR="./results/$ARCH/$SET/$EXPERIMENT"
+    RESULTS_DIR="./results/$ARCH/$SET/${SET}_${EXPERIMENT}"
 fi
 
 if ! pgrep -x "pueued" > /dev/null
