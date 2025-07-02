@@ -25,17 +25,22 @@
 
 set -xu
 
-GEM5=./../build/ALL/gem5.opt
-GEM5_CONFIG=./gem5-configs/fs-simple.py
+GEM5=./../build/ARM/gem5.opt
+GEM5_CONFIG=./gem5-configs/fs-fdp.py
 
-ARCH="amd64"
+ARCH="arm64"
 CPU_TYPE="o3"
+BRANCH_PREDICTOR="TSL8k"
+LATENCY=0
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
-BENCHMARKS+=("nodeapp-nginx") 
+#BENCHMARKS+=("nodeapp-nginx") 
 BENCHMARKS+=("mediawiki")
-BENCHMARKS+=("mediawiki-nginx")
+#BENCHMARKS+=("mediawiki-nginx")
+
+# These are not server workloads:
+
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
@@ -43,6 +48,19 @@ BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
+BENCHMARKS+=("llbp")
+
+# -----
+
+BENCHMARKS+=("dacapo-cassandra")
+BENCHMARKS+=("dacapo-h2")
+BENCHMARKS+=("dacapo-h2o")
+BENCHMARKS+=("dacapo-kafka")
+BENCHMARKS+=("dacapo-luindex")
+BENCHMARKS+=("dacapo-lusearch")
+BENCHMARKS+=("dacapo-spring")
+BENCHMARKS+=("dacapo-tomcat")
+
 
 
 # ---------------------
@@ -94,6 +112,9 @@ do
                 --workload ${bm} \
                 --isa $ISA \
                 --cpu-type $CPU_TYPE \
+                --bp $BRANCH_PREDICTOR \
+                --fdp \
+                --latency $LATENCY \
                 --mode=eval \
             > $OUTDIR/gem5.log 2>&1"
 

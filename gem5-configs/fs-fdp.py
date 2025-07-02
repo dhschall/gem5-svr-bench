@@ -46,13 +46,20 @@ import m5
 from m5.objects import (
     SimpleBTB,
     LTAGE,
+    TAGE_SC_L_8KB,
+    TAGE_SC_L_TAGE_8KB,
     TAGE_SC_L_64KB,
+    TAGE_SC_L_TAGE_64KB,
     ITTAGE,
     MultiPrefetcher,
     TaggedPrefetcher,
     FetchDirectedPrefetcher,
     L2XBar,
     BranchPredictor,
+    LLBP,
+    LLBP_TAGE_64KB,
+    LLBPRef,
+    LTAGE_TAGE
 )
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
 from gem5.simulate.exit_event import ExitEvent
@@ -93,34 +100,133 @@ cpu = processor.cores[-1].core
 class BTB(SimpleBTB):
     numEntries = 16*1024
     associativity = 8
+    
+    
+class TAGE_Inf_N(TAGE_SC_L_TAGE_64KB):
+     logTagTableSize = 20
+     shortTagsSize = 20
+     longTagsSize = 20
 
 
-class BPLTage(BranchPredictor):
-    instShiftAmt = 0
+class TAGE_128_N(TAGE_SC_L_TAGE_64KB):
+     logTagTableSize = 11
+
+class TAGE_256_N(TAGE_SC_L_TAGE_64KB):
+     logTagTableSize = 12
+
+class TAGE_512_N(TAGE_SC_L_TAGE_64KB):
+     logTagTableSize = 13
+    
+latency = args.latency if args.latency is not None else 0
+
+match args.bp:
+    case "TSL8k":
+        cbp = TAGE_SC_L_8KB(
+            tage=TAGE_SC_L_TAGE_8KB(),
+            latency=latency,
+        )
+    case "TSL64k":
+        cbp = TAGE_SC_L_64KB(
+            tage=TAGE_SC_L_TAGE_64KB(),
+            latency=latency,
+        )
+    case "TSL128k":
+        cbp = TAGE_SC_L_64KB(
+            tage=TAGE_128_N(),
+            latency=latency,
+        )
+    case "TSL256k":
+        cbp = TAGE_SC_L_64KB(
+            tage=TAGE_256_N(),
+            latency=latency,
+        )
+    case "TSL512k":
+        cbp = TAGE_SC_L_64KB(
+            tage=TAGE_512_N(),
+            latency=latency,
+        )
+    case "TSLInf":
+        cbp = TAGE_SC_L_64KB(
+            tage=TAGE_Inf_N(),
+            latency=latency,
+        )
+    case "LLBP":
+        cbp = LLBP(
+            base=TAGE_SC_L_64KB(
+                tage=LLBP_TAGE_64KB(),
+                latency=latency,
+            ),
+            rcrType=3,
+            rcrWindow=8,
+            rcrDist=4,
+            rcrShift=1,
+            backingStorageCapacity=14000,
+            patternBufferCapacity=64,
+            patternBufferAssoc=4,
+            patternSetBankBits=10,
+
+            patternSetCapacity=16,
+            patternSetAssoc=4,
+            rcrTagWidth=14,
+            backingStorageLatency=6,
+            patterTagBits = 13,
+        )
+    case "LLBPInf":
+        cbp = LLBP(
+            base=TAGE_SC_L_64KB(
+                tage=LLBP_TAGE_64KB(),
+                latency=latency,
+            ),
+            rcrType=3,
+            rcrWindow=8,
+            rcrDist=4,
+            rcrShift=1,
+            backingStorageCapacity=1400000,
+            patternBufferCapacity=64,
+            patternBufferAssoc=4,
+            patternSetBankBits=10,
+
+            patternSetCapacity=0,
+            patternSetAssoc=0,
+            rcrTagWidth=31,
+            backingStorageLatency=6,
+            patterTagBits = 40,
+
+        )
+    case "LLBPRef":
+        cbp = LLBPRef(inf=False)
+    case "LLBPRefInf":
+        cbp = LLBPRef(inf=True)
+    case _: raise ValueError(f"Unsupported BP: {args.bp}")
+    
+
+class BPU(BranchPredictor):
+    instShiftAmt = 2
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    conditionalBranchPred = LTAGE()
+    conditionalBranchPred = cbp
     requiresBTBHit = True
 
+if args.cpu_type == "o3":
+    cpu.fetchWidth = 6
+    cpu.decodeWidth = 6
+    cpu.renameWidth = 6
+    cpu.dispatchWidth = 6
+    cpu.issueWidth = 6
+    cpu.commitWidth = 6
+    cpu.squashWidth = 6
 
-class BPTageSCL(BranchPredictor):
-    instShiftAmt = 0
-    btb = BTB()
-    indirectBranchPred=ITTAGE()
-    conditionalBranchPred = TAGE_SC_L_64KB()
-    requiresBTBHit = True
-
-
-cpu.numROBEntries=576
-cpu.LQEntries=190
-cpu.SQEntries=120
-cpu.numIQEntries=128*2
-cpu.fetchBufferSize = 32
+    cpu.numROBEntries = 512
+    cpu.LQEntries = 248
+    cpu.SQEntries = 122
+    cpu.numIQEntries = 512
+    cpu.fetchBufferSize = 32
 
 # Configure the branch predictor
-cpu.branchPred = BPTageSCL()
+cpu.branchPred = BPU()
 
 if args.fdp:
+    assert args.cpu_type == "o3", "Fetch-Directed Prefetching only works with O3 CPU"
     # We need to configure the decoupled front-end with some specific parameters.
     # First the fetch buffer and fetch target size. We want double the size of
     # the fetch buffer to be able to run ahead of fetch
@@ -128,8 +234,7 @@ if args.fdp:
     cpu.numFTQEntries = 24
     cpu.minInstSize = 1 if args.isa == "X86" else 4
     cpu.decoupledFrontEnd = True
-    cpu.bacBranchPredictDelay = 3
-    # cpu.fetchQueueSize = 16
+    cpu.fetchQueueSize = 32
     cpu.branchPred.takenOnlyHistory=True
 
 
@@ -169,14 +274,14 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
             pf.registerMMU(cpu1.mmu)
 
         self.l1dcaches = [
-            L1DCache(size=self._l1d_size)
+            L1DCache(size=self._l1d_size, assoc=16)
             for i in range(board.get_processor().get_num_cores())
         ]
         self.l2buses = [
             L2XBar() for i in range(board.get_processor().get_num_cores())
         ]
         self.l2caches = [
-            L2Cache(size=self._l2_size)
+            L2Cache(size=self._l2_size, assoc=16)
             for i in range(board.get_processor().get_num_cores())
         ]
         self.mmucaches = [
@@ -219,7 +324,7 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
 
 
 cache_hierarchy = CacheHierarchy(
-    l1i_size="32KiB", l1d_size="32KiB", l2_size="1MB"
+    l1i_size="32KiB", l1d_size="64KiB", l2_size="2MiB"
 )
 
 
@@ -269,21 +374,21 @@ def executeExit() -> Iterator[bool]:
     yield True
 
 
-delta = 50_000_000
+warmup_time = 100_000_000
+max_instr = 1_000_000_000
 
 def maxInsts() -> Iterator[bool]:
-    sim_instr = 0
-    max_instr = 1_000_000_000
+    m5.stats.reset()
+    print(f"Warmed up for {warmup_time} Instructions, starting real run")
+    processor.cores[-1]._set_inst_stop_any_thread(max_instr, True)
+    yield False
 
-    while True:
-        m5.stats.dump()
-        m5.stats.reset()
-        sim_instr += delta
-        print("Simulated Instructions: ", sim_instr)
-        processor.cores[-1]._set_inst_stop_any_thread(delta, True)
-        if sim_instr >= max_instr:
-            yield True
-        yield False
+    # Called again ---
+    m5.stats.dump()
+    m5.stats.reset()
+    
+    print(f"Reached {max_instr} Instructions, run complete")
+    yield True
 
 
 kernel_args = [
@@ -330,7 +435,7 @@ simulator = MySimulator(
 
 
 if args.mode == "eval":
-    processor.cores[-1]._set_inst_stop_any_thread(delta, False)
+    processor.cores[-1]._set_inst_stop_any_thread(warmup_time, False)
 
 
 simulator.run()

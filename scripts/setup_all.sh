@@ -40,6 +40,7 @@ BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
+BENCHMARKS+=("llbp")
 
 
 # ----------------------

@@ -100,6 +100,19 @@ parser.add_argument(
     choices=isa_choices.keys(),
 )
 
+parser.add_argument(
+    "--bp",
+    type=str,
+    default="TSL64k",
+    help="The Branch Predictor to use.",
+)
+
+parser.add_argument(
+    "--latency",
+    type=int,
+    help="The Latency to be applied.",
+)
+
 args = parser.parse_args()
 
 
