@@ -112,6 +112,7 @@ def RTCPO2(n):
 
 class BTB(SimpleBTB):
     numEntries = RTCPO2(32 * 1024 * factor)
+    tagBits = 32
    # associativity = 8
 
 
@@ -129,6 +130,25 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
+    indirectBranchPred.itage.tagTableTagWidths = [
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+    ]
+    indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
     tage = TAGE_Inf_N()
     requiresBTBHit = True
 
@@ -236,7 +256,7 @@ if args.fdp:
     cpu.fuPool = S_FUPool()
 
     # Return address stack size
-    cpu.branchPred.ras.numEntries=64
+    cpu.branchPred.ras.numEntries=128
 
     # Scaling the number of registers used for renaming
     scale_registers(cpu, factor*1.15)
@@ -256,7 +276,7 @@ class L1ICacheGiant(Cache):
     tag_latency = 1
     data_latency = 1
     response_latency = 1
-    mshrs = 16
+    mshrs = 32
     tgts_per_mshr = 20
     writeback_clean = True
 
@@ -352,7 +372,7 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
             self.membus.mem_side_ports = port
 
         self.l1icaches = [
-            L1ICache(size=self._l1i_size)
+            L1ICache(size=self._l1i_size, mshrs = 32)
             for i in range(board.get_processor().get_num_cores())
         ]
         cpu1 = board.get_processor().cores[-1].core
@@ -370,7 +390,7 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
             pf.registerMMU(cpu1.mmu)
 
         self.l1dcaches = [
-            L1DCache(size=self._l1d_size)
+            L1DCache(size=self._l1d_size, mshrs = 32)
             for i in range(board.get_processor().get_num_cores())
         ]
         self.l2buses = [
@@ -381,7 +401,8 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
             for i in range(board.get_processor().get_num_cores())
         ]
         self.mmucaches = [
-            MMUCache(size="{}KiB".format(RTCPO2(8*factor)))
+            MMUCache(size="{}KiB".format(RTCPO2(16*factor)))
+           # MMUCache(size="128KiB")
             for _ in range(board.get_processor().get_num_cores())
         ]
 
@@ -419,9 +440,11 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
                 cpu.connect_interrupt()
 
 
-cache_hierarchy = CacheHierarchy(
-    l1i_size="{}KiB".format(RTCPO2(32*factor)), l1d_size="{}KiB".format(RTCPO2(32*factor)), l2_size="{}MB".format(RTCPO2(factor))
-)
+""" cache_hierarchy = CacheHierarchy(
+    l1i_size="{}KiB".format(RTCPO2(64*factor)), l1d_size="{}KiB".format(RTCPO2(64*factor)), l2_size="{}MB".format(RTCPO2(2*factor))
+) """
+
+#cache_hierarchy = CacheHierarchy("1024KiB", "1024KiB", "8192KiB")
 
 
 
