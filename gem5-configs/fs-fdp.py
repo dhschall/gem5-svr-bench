@@ -53,13 +53,16 @@ from m5.objects import (
     ITTAGE,
     MultiPrefetcher,
     TaggedPrefetcher,
+    ConditionalPredictor,
     FetchDirectedPrefetcher,
+    LocalBP,
     L2XBar,
     BranchPredictor,
     LLBP,
     LLBP_TAGE_64KB,
     LLBPRef,
-    LTAGE_TAGE
+    LTAGE_TAGE,
+    NULL
 )
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
 from gem5.simulate.exit_event import ExitEvent
@@ -101,12 +104,10 @@ class BTB(SimpleBTB):
     numEntries = 16*1024
     associativity = 8
     
-    
-class TAGE_Inf_N(TAGE_SC_L_TAGE_64KB):
-     logTagTableSize = 20
-     shortTagsSize = 20
-     longTagsSize = 20
 
+class TwoBit64k(LocalBP):    
+    localPredictorSize = 16*1024
+    localCtrBits = 2
 
 class TAGE_128_N(TAGE_SC_L_TAGE_64KB):
      logTagTableSize = 11
@@ -117,94 +118,115 @@ class TAGE_256_N(TAGE_SC_L_TAGE_64KB):
 class TAGE_512_N(TAGE_SC_L_TAGE_64KB):
      logTagTableSize = 13
     
-latency = args.latency if args.latency is not None else 0
+class TAGE_Inf_N(TAGE_SC_L_TAGE_64KB):
+     logTagTableSize = 20
+     shortTagsSize = 20
+     longTagsSize = 20
 
-match args.bp:
-    case "TSL8k":
-        cbp = TAGE_SC_L_8KB(
-            tage=TAGE_SC_L_TAGE_8KB(),
-            latency=latency,
-        )
-    case "TSL64k":
-        cbp = TAGE_SC_L_64KB(
-            tage=TAGE_SC_L_TAGE_64KB(),
-            latency=latency,
-        )
-    case "TSL128k":
-        cbp = TAGE_SC_L_64KB(
-            tage=TAGE_128_N(),
-            latency=latency,
-        )
-    case "TSL256k":
-        cbp = TAGE_SC_L_64KB(
-            tage=TAGE_256_N(),
-            latency=latency,
-        )
-    case "TSL512k":
-        cbp = TAGE_SC_L_64KB(
-            tage=TAGE_512_N(),
-            latency=latency,
-        )
-    case "TSLInf":
-        cbp = TAGE_SC_L_64KB(
-            tage=TAGE_Inf_N(),
-            latency=latency,
-        )
-    case "LLBP":
-        cbp = LLBP(
-            base=TAGE_SC_L_64KB(
-                tage=LLBP_TAGE_64KB(),
-                latency=latency,
-            ),
-            rcrType=3,
-            rcrWindow=8,
-            rcrDist=4,
-            rcrShift=1,
-            backingStorageCapacity=14000,
-            patternBufferCapacity=64,
-            patternBufferAssoc=4,
-            patternSetBankBits=10,
-
-            patternSetCapacity=16,
-            patternSetAssoc=4,
-            rcrTagWidth=14,
-            backingStorageLatency=6,
-            patterTagBits = 13,
-        )
-    case "LLBPInf":
-        cbp = LLBP(
-            base=TAGE_SC_L_64KB(
-                tage=LLBP_TAGE_64KB(),
-                latency=latency,
-            ),
-            rcrType=3,
-            rcrWindow=8,
-            rcrDist=4,
-            rcrShift=1,
-            backingStorageCapacity=1400000,
-            patternBufferCapacity=64,
-            patternBufferAssoc=4,
-            patternSetBankBits=10,
-
-            patternSetCapacity=0,
-            patternSetAssoc=0,
-            rcrTagWidth=31,
-            backingStorageLatency=6,
-            patterTagBits = 40,
-
-        )
-    case "LLBPRef":
-        cbp = LLBPRef(inf=False)
-    case "LLBPRefInf":
-        cbp = LLBPRef(inf=True)
-    case _: raise ValueError(f"Unsupported BP: {args.bp}")
     
+
+def predictor_map(predictor_name: str, latency: int) -> ConditionalPredictor:
+    match predictor_name:
+        case "TSL8k":
+            cbp = TAGE_SC_L_8KB(
+                tage=TAGE_SC_L_TAGE_8KB(),
+                latency=latency,
+            )
+        case "TSL64k":
+            cbp = TAGE_SC_L_64KB(
+                tage=TAGE_SC_L_TAGE_64KB(),
+                latency=latency,
+            )
+        case "TSL128k":
+            cbp = TAGE_SC_L_64KB(
+                tage=TAGE_128_N(),
+                latency=latency,
+            )
+        case "TSL256k":
+            cbp = TAGE_SC_L_64KB(
+                tage=TAGE_256_N(),
+                latency=latency,
+            )
+        case "TSL512k":
+            cbp = TAGE_SC_L_64KB(
+                tage=TAGE_512_N(),
+                latency=latency,
+            )
+        case "TSLInf":
+            cbp = TAGE_SC_L_64KB(
+                tage=TAGE_Inf_N(),
+                latency=latency,
+            )
+        case "2Bit64k":
+            cbp = TwoBit64k(
+                latency=latency,
+            )
+        case "LLBP":
+            cbp = LLBP(
+                base=TAGE_SC_L_64KB(
+                    tage=LLBP_TAGE_64KB(),
+                    latency=latency,
+                ),
+                rcrType=3,
+                rcrWindow=8,
+                rcrDist=4,
+                rcrShift=1,
+                backingStorageCapacity=14000,
+                patternBufferCapacity=64,
+                patternBufferAssoc=4,
+                patternSetBankBits=10,
+
+                patternSetCapacity=16,
+                patternSetAssoc=4,
+                rcrTagWidth=14,
+                backingStorageLatency=6,
+                patterTagBits = 13,
+            )
+        case "LLBPInf":
+            cbp = LLBP(
+                base=TAGE_SC_L_64KB(
+                    tage=LLBP_TAGE_64KB(),
+                    latency=latency,
+                ),
+                rcrType=3,
+                rcrWindow=8,
+                rcrDist=4,
+                rcrShift=1,
+                backingStorageCapacity=1400000,
+                patternBufferCapacity=64,
+                patternBufferAssoc=4,
+                patternSetBankBits=10,
+
+                patternSetCapacity=0,
+                patternSetAssoc=0,
+                rcrTagWidth=31,
+                backingStorageLatency=6,
+                patterTagBits = 40,
+
+            )
+        case "LLBPRef":
+            cbp = LLBPRef(inf=False)
+        case "LLBPRefInf":
+            cbp = LLBPRef(inf=True)
+        case _: raise ValueError(f"Unsupported BP: {args.bp}")
+    return cbp
+    
+
+primary_latency = args.latency if args.latency is not None else 0
+primary_predictor = predictor_map(args.bp, primary_latency)
+
+overriding_latency = args.overriding_latency if args.overriding_latency is not None else 0
+if args.overriding_bp is not None and args.overriding_bp != "none":
+    overriding_predictor = predictor_map(args.overriding_bp, overriding_latency)
+else:
+    overriding_predictor = NULL
 
 class BPU(BranchPredictor):
     instShiftAmt = 2
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    conditionalBranchPred = cbp
+    conditionalBranchPred = primary_predictor
+    overridingBranchPred = overriding_predictor
     requiresBTBHit = True
 
 if args.cpu_type == "o3":
@@ -224,6 +246,7 @@ if args.cpu_type == "o3":
 
 # Configure the branch predictor
 cpu.branchPred = BPU()
+#cpu.branchPred.ras.numEntries=64
 
 if args.fdp:
     assert args.cpu_type == "o3", "Fetch-Directed Prefetching only works with O3 CPU"

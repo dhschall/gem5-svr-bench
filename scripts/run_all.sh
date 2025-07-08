@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+OVERRIDING_PREDICTOR="none"
+
 # MIT License
 #
 # Copyright (c) 2025 Technical University of Munich
@@ -30,8 +32,14 @@ GEM5_CONFIG=./gem5-configs/fs-fdp.py
 
 ARCH="arm64"
 CPU_TYPE="o3"
-BRANCH_PREDICTOR="TSL8k"
-LATENCY=0
+
+BRANCH_PREDICTOR="2Bit64k" 
+LATENCY=1
+
+OVERRIDING_PREDICTOR="TSL64k"
+OVERRIDING_LATENCY=1
+
+# ----------------------------------------------------------
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
@@ -39,8 +47,16 @@ BENCHMARKS+=("nodeapp")
 BENCHMARKS+=("mediawiki")
 #BENCHMARKS+=("mediawiki-nginx")
 
-# These are not server workloads:
+BENCHMARKS+=("dacapo-cassandra")
+BENCHMARKS+=("dacapo-h2")
+BENCHMARKS+=("dacapo-h2o")
+#BENCHMARKS+=("dacapo-kafka")
+BENCHMARKS+=("dacapo-luindex")
+BENCHMARKS+=("dacapo-lusearch")
+BENCHMARKS+=("dacapo-spring")
+BENCHMARKS+=("dacapo-tomcat")
 
+# These are not server workloads:
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
@@ -49,19 +65,6 @@ BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
 BENCHMARKS+=("llbp")
-
-# -----
-
-BENCHMARKS+=("dacapo-cassandra")
-BENCHMARKS+=("dacapo-h2")
-BENCHMARKS+=("dacapo-h2o")
-BENCHMARKS+=("dacapo-kafka")
-BENCHMARKS+=("dacapo-luindex")
-BENCHMARKS+=("dacapo-lusearch")
-BENCHMARKS+=("dacapo-spring")
-BENCHMARKS+=("dacapo-tomcat")
-
-
 
 # ---------------------
 
@@ -113,8 +116,10 @@ do
                 --isa $ISA \
                 --cpu-type $CPU_TYPE \
                 --bp $BRANCH_PREDICTOR \
-                --fdp \
                 --latency $LATENCY \
+                --overriding-bp $OVERRIDING_PREDICTOR \
+                --overriding-latency $OVERRIDING_LATENCY \
+                --fdp \
                 --mode=eval \
             > $OUTDIR/gem5.log 2>&1"
 
