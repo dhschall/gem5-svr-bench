@@ -20,6 +20,7 @@
 # SOFTWARE.
 # Install dependencies
 
+from typing import Optional
 from gem5.components.processors.cpu_types import CPUTypes
 from gem5.isas import ISA
 
@@ -98,6 +99,32 @@ parser.add_argument(
     default="X86",
     help="The ISA to simulate.",
     choices=isa_choices.keys(),
+)
+
+parser.add_argument(
+    "--bp",
+    type=str,
+    default="TSL64k",
+    help="The Branch Predictor to use.",
+)
+
+parser.add_argument(
+    "--latency",
+    type=int,
+    help="The Latency to be applied.",
+)
+
+parser.add_argument(
+    "--overriding-bp",
+    type=str,
+    default="none",
+    help="The Overriding Branch Predictor to use.",
+)
+
+parser.add_argument(
+    "--overriding-latency",
+    type=int,
+    help="The Overriding Latency to be applied.",
 )
 
 args = parser.parse_args()

@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+OVERRIDING_PREDICTOR="none"
+
 # MIT License
 #
 # Copyright (c) 2025 Technical University of Munich
@@ -25,17 +27,36 @@
 
 set -xu
 
-GEM5=./../build/ALL/gem5.opt
-GEM5_CONFIG=./gem5-configs/fs-simple.py
+GEM5=./../build/ARM/gem5.opt
+GEM5_CONFIG=./gem5-configs/fs-fdp.py
 
-ARCH="amd64"
+ARCH="arm64"
 CPU_TYPE="o3"
+
+BRANCH_PREDICTOR="2Bit64k" 
+LATENCY=0
+
+OVERRIDING_PREDICTOR="TSL512k"
+OVERRIDING_LATENCY=1
+
+# ----------------------------------------------------------
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
-BENCHMARKS+=("nodeapp-nginx") 
+#BENCHMARKS+=("nodeapp-nginx") 
 BENCHMARKS+=("mediawiki")
-BENCHMARKS+=("mediawiki-nginx")
+#BENCHMARKS+=("mediawiki-nginx")
+
+BENCHMARKS+=("dacapo-cassandra")
+BENCHMARKS+=("dacapo-h2")
+BENCHMARKS+=("dacapo-h2o")
+#BENCHMARKS+=("dacapo-kafka")
+BENCHMARKS+=("dacapo-luindex")
+BENCHMARKS+=("dacapo-lusearch")
+BENCHMARKS+=("dacapo-spring")
+BENCHMARKS+=("dacapo-tomcat")
+
+# These are not server workloads:
 BENCHMARKS+=("proto")
 BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
@@ -43,7 +64,7 @@ BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
 BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
-
+BENCHMARKS+=("llbp")
 
 # ---------------------
 
@@ -94,6 +115,11 @@ do
                 --workload ${bm} \
                 --isa $ISA \
                 --cpu-type $CPU_TYPE \
+                --bp $BRANCH_PREDICTOR \
+                --latency $LATENCY \
+                --overriding-bp $OVERRIDING_PREDICTOR \
+                --overriding-latency $OVERRIDING_LATENCY \
+                --fdp \
                 --mode=eval \
             > $OUTDIR/gem5.log 2>&1"
 

@@ -113,6 +113,12 @@ build {
     scripts         = ["${local.rootdir}/benchmarks/fleetbench/install_fleetbench.sh"]
   }
 
+  ## LLBP Benchmark provisioning --------------------------
+  provisioner "shell" {
+    execute_command = "echo '${var.ssh_password}' | {{ .Vars }} bash '{{ .Path }}'"
+    scripts         = ["${local.rootdir}/benchmarks/llbp_benchmark/install_llbp_bench.sh"]
+  }
+
 
   ## Verilator provisioning --------------------------
   provisioner "file" {
