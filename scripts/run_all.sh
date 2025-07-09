@@ -34,9 +34,9 @@ ARCH="arm64"
 CPU_TYPE="o3"
 
 BRANCH_PREDICTOR="2Bit64k" 
-LATENCY=1
+LATENCY=0
 
-OVERRIDING_PREDICTOR="TSL64k"
+OVERRIDING_PREDICTOR="TSL512k"
 OVERRIDING_LATENCY=1
 
 # ----------------------------------------------------------
