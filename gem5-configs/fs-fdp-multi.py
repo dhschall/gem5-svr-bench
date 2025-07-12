@@ -130,7 +130,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    indirectBranchPred.itage.tagTableTagWidths = [
+    """ indirectBranchPred.itage.tagTableTagWidths = [
         20,
         20,
         20,
@@ -149,7 +149,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
         20,
     ]
     indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    tage = TAGE_Inf_N()
+    tage = TAGE_Inf_N() """
     requiresBTBHit = True
 
 # -------------- Backend Configutation --------- #
@@ -440,9 +440,9 @@ class CacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
                 cpu.connect_interrupt()
 
 
-""" cache_hierarchy = CacheHierarchy(
+cache_hierarchy = CacheHierarchy(
     l1i_size="{}KiB".format(RTCPO2(64*factor)), l1d_size="{}KiB".format(RTCPO2(64*factor)), l2_size="{}MB".format(RTCPO2(2*factor))
-) """
+)
 
 #cache_hierarchy = CacheHierarchy("1024KiB", "1024KiB", "8192KiB")
 
