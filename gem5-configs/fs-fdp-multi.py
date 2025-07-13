@@ -130,7 +130,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    """ indirectBranchPred.itage.tagTableTagWidths = [
+    indirectBranchPred.itage.tagTableTagWidths = [
         20,
         20,
         20,
@@ -149,7 +149,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
         20,
     ]
     indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    tage = TAGE_Inf_N() """
+    tage = TAGE_Inf_N()
     requiresBTBHit = True
 
 # -------------- Backend Configutation --------- #
