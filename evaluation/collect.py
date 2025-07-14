@@ -9,8 +9,6 @@ def parse_stats_file(file_path) -> dict[str, list[str]]:
     with open(file_path, 'r') as f:
         lines: list[str] = f.readlines()
     
-    datapoints: dict[str, list[str]] = {}
-    
     blocks: list[list[str]] = []
     block: list[str] = []
     in_block = False
@@ -24,18 +22,33 @@ def parse_stats_file(file_path) -> dict[str, list[str]]:
         elif in_block:
             block.append(line)
     
+    # First pass: collect all unique keys
+    all_keys = set()
     for block in blocks:
         for line in block:
             chunks = line.split()
             if len(chunks) < 2:
-                continue                
-            key = chunks[0]
-            if key.__contains__('\0'):
                 continue
-            if key not in datapoints:
-                datapoints[key] = []
+            key = chunks[0]
+            if '\0' in key:
+                continue
+            all_keys.add(key)
+    
+    # Second pass: collect values for each key per block
+    datapoints: dict[str, list[str]] = {key: [] for key in all_keys}
+    for block in blocks:
+        block_dict = {}
+        for line in block:
+            chunks = line.split()
+            if len(chunks) < 2:
+                continue
+            key = chunks[0]
+            if '\0' in key:
+                continue
             value = chunks[1]
-            datapoints[key].append(value)
+            block_dict[key] = value
+        for key in all_keys:
+            datapoints[key].append(block_dict.get(key, ''))
     return datapoints
             
 
