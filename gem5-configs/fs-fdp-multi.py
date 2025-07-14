@@ -130,7 +130,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    indirectBranchPred.itage.tagTableTagWidths = [
+    """ indirectBranchPred.itage.tagTableTagWidths = [
         20,
         20,
         20,
@@ -149,7 +149,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
         20,
     ]
     indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    tage = TAGE_Inf_N()
+    tage = TAGE_Inf_N() """
     requiresBTBHit = True
 
 # -------------- Backend Configutation --------- #
@@ -495,11 +495,16 @@ delta = 50_000_000
 
 def maxInsts() -> Iterator[bool]:
     sim_instr = 0
-    max_instr = 1_000_000_000
+    max_instr = 1_100_000_000
+    it = 0
 
     while True:
-        m5.stats.dump()
-        m5.stats.reset()
+        if it >= 2:
+            m5.stats.dump()
+            m5.stats.reset()
+        else:
+             m5.stats.reset()
+        it += 1
         sim_instr += delta
         print("Simulated Instructions: ", sim_instr)
         processor.cores[-1]._set_inst_stop_any_thread(delta, True)
