@@ -267,11 +267,12 @@ if args.fdp:
     set_width (cpu, width)
 
     #tune mmu 
-    cpu.mmu.l2_shared.size = 3840 * factor
-    cpu.mmu.itb.size = 256 * factor
-    cpu.mmu.dtb.size = 256 * factor
-    cpu.mmu.stage2_itb.size = 256 * factor
-    cpu.mmu.stage2_dtb.size = 256 * factor
+    cpu.mmu.l2_shared.size = RTCPO2(3840 * factor)
+    cpu.mmu.l2_shared.assoc = 8
+    cpu.mmu.itb.size = RTCPO2(256 * factor)
+    cpu.mmu.dtb.size = RTCPO2(256 * factor)
+    cpu.mmu.stage2_itb.size = RTCPO2(256 * factor)
+    cpu.mmu.stage2_dtb.size = RTCPO2(256 * factor)
    
 ##############################################################
 # Cache Hierarchy
