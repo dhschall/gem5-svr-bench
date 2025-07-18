@@ -265,6 +265,13 @@ if args.fdp:
 
     #Setting the width of the different stages  
     set_width (cpu, width)
+
+    #tune mmu 
+    cpu.mmu.l2_shared.size = 3840 * factor
+    cpu.mmu.itb.size = 256 * factor
+    cpu.mmu.dtb.size = 256 * factor
+    cpu.mmu.stage2_itb.size = 256 * factor
+    cpu.mmu.stage2_dtb.size = 256 * factor
    
 ##############################################################
 # Cache Hierarchy
