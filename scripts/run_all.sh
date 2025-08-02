@@ -25,26 +25,27 @@
 
 set -xu
 
-GEM5=./../build/ARM/gem5.fast
+GEM5=./../build/ARM/gem5.opt
 GEM5_CONFIG=./gem5-configs/fs-fdp-multi.py
 
 WIDTH=32
 FACTOR=4
 PREDPERCYCLE=4
 SET=""
+DATA_POINTS=10
 
 ARCH="arm64"
 CPU_TYPE="o3"
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
-BENCHMARKS+=("nodeapp-nginx")
+#BENCHMARKS+=("nodeapp-nginx")
 BENCHMARKS+=("proto")
-BENCHMARKS+=("swissmap")
+#BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
-BENCHMARKS+=("tcmalloc")
+#BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
-BENCHMARKS+=("hashing")
+#BENCHMARKS+=("hashing")
 BENCHMARKS+=("stl")
 BENCHMARKS+=("dacapo-cassandra")
 BENCHMARKS+=("dacapo-h2")
@@ -57,15 +58,38 @@ BENCHMARKS+=("dacapo-tomcat")
 BENCHMARKS+=("renaissance-http")
 BENCHMARKS+=("renaissance-chirper")
 
+declare -A ticks
+ticks["nodeapp"]=156519779329548
+#ticks["nodeapp-nginx"]=0
+ticks["proto"]=88168143393873
+#ticks["swissmap"]=0
+ticks["libc"]=88198009891479 
+#ticks["tcmalloc"]=0
+ticks["compression"]=88044509003022
+#ticks["hashing"]=0
+ticks["stl"]=87949837500957
+ticks["dacapo-cassandra"]=3524023900880667
+ticks["dacapo-h2"]=2050521473086200
+ticks["dacapo-h2o"]=142466000732325
+ticks["dacapo-kafka"]=340527892913658
+ticks["dacapo-luindex"]=146136460986936
+ticks["dacapo-lusearch"]=386843744812212
+ticks["dacapo-spring"]=409195183575969
+ticks["dacapo-tomcat"]=817015457226816
+ticks["renaissance-http"]=174877618558770
+ticks["renaissance-chirper"]=174782875564602
+
+
 
 # Parsing args
 
-while getopts "w:f:p:s:" opt; do
+while getopts "w:f:p:s:d:" opt; do
     case $opt in
     w) WIDTH=$OPTARG ;;
     f) FACTOR=$OPTARG ;;
     p) PREDPERCYCLE=$OPTARG ;;
     s) SET=$OPTARG ;;
+    d) DATA_POINTS=$OPTARG ;;
     ?) echo "invalid option" ;;
     esac
 done
@@ -123,6 +147,10 @@ do
 
     pueue add -g "$PGROUP" -l "$EXPERIMENT-$bm" -- "$GEM5 \
         --outdir=$OUTDIR \
+        --debug-flags=O3PipeView \
+        --debug-start=${ticks["${bm}"]} \
+        --debug-end=$((${ticks["${bm}"]} + 70000)) \
+        --debug-file=trace.out \
             $GEM5_CONFIG \
                 --width $WIDTH \
                 --factor $FACTOR \
@@ -134,6 +162,7 @@ do
                 --isa $ISA \
                 --cpu-type $CPU_TYPE \
                 --mode=eval \
+                --data_point $DATA_POINTS \
             > $OUTDIR/gem5.log 2>&1"
 
 done

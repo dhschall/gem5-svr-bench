@@ -122,6 +122,13 @@ parser.add_argument(
     help="The number of prediction per cycle to simulate."
 )
 
+parser.add_argument(
+    "--data_point",
+    type=int,
+    default=10,
+    help="The number of data points to simulate"
+)
+
 args = parser.parse_args()
 
 

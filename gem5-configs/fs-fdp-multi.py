@@ -130,8 +130,8 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    """ indirectBranchPred.itage.tagTableTagWidths = [
-        20,
+    indirectBranchPred.itage.tagTableTagWidths = [
+        0,
         20,
         20,
         20,
@@ -149,25 +149,26 @@ class BPTageSCL(TAGE_SC_L_64KB):
         20,
     ]
     indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    tage = TAGE_Inf_N() """
+    tage = TAGE_Inf_N()
     requiresBTBHit = True
+    updateBTBAtSquash = True
 
 # -------------- Backend Configutation --------- #
 #-----------------------------------------------
 class S_IntALU(IntALU):
-    count = 6 * factor
+    count = 12 * factor
 
 class S_IntMultDiv(IntMultDiv):
-    count = 2 * factor
+    count = 6 * factor
 
 class S_FP_ALU(FP_ALU):
-    count = 4 * factor
+    count = 6 * factor
 
 class S_FP_MultDiv(FP_MultDiv):
-    count = 2 * factor
+    count = 6 * factor
 
 class S_SIMD_Unit(SIMD_Unit):
-    count = 4 * factor
+    count = 6 * factor
 
 class S_Matrix_Unit(Matrix_Unit):
     count = 1 * factor
@@ -176,13 +177,13 @@ class S_PredALU(PredALU):
     count = 1 * factor
 
 class S_ReadPort(ReadPort):
-    count = 1 * factor
+    count = 4 * factor
 
 class S_WritePort(WritePort):
-    count = 1 * factor
+    count = 4 * factor
 
 class S_RdWrPort(RdWrPort):
-    count = 4 * factor
+    count = 8 * factor
 
 class S_IprPort(IprPort):
     count = 1 * factor
@@ -206,8 +207,8 @@ class S_FUPool(FUPool):
 
 def scale_registers(cpu_, factor):
 
-    cpu_.numPhysIntRegs = ceil(256 * factor)
-    cpu_.numPhysFloatRegs = ceil(256 * factor)
+    cpu_.numPhysIntRegs = ceil(500 * factor)
+    cpu_.numPhysFloatRegs = ceil(400 * factor)
     cpu_.numPhysVecRegs = ceil(256 * factor)
     cpu_.numPhysVecPredRegs = ceil(32 * factor)
     cpu_.numPhysMatRegs = ceil(2 * factor)
@@ -218,7 +219,6 @@ def set_width(cpu_, width):
     cpu_.fetchWidth = width
     cpu_.decodeWidth = width
     cpu_.renameWidth = width
-    cpu_.commitWidth = width
     cpu_.issueWidth = width
     cpu_.wbWidth = width
     cpu_.commitWidth = width
@@ -241,7 +241,7 @@ if args.fdp:
     # Set size if relevant buffers
     cpu.numFTQEntries = 50 * factor
     cpu.numROBEntries = 576 * factor
-    cpu.numIQEntries = 256*2 * factor
+    cpu.numIQEntries = 300 * 2 * factor
     cpu.LQEntries = 200 * factor
     cpu.SQEntries = 200 * factor
     cpu.LFSTSize = RTCPO2(1024 * factor)
@@ -259,7 +259,7 @@ if args.fdp:
     cpu.branchPred.ras.numEntries=128
 
     # Scaling the number of registers used for renaming
-    scale_registers(cpu, factor*1.15)
+    scale_registers(cpu, factor)
 
     cpu.numPredPerCycle = args.ppc
 
@@ -498,12 +498,12 @@ def executeExit() -> Iterator[bool]:
     m5.stats.dump()
     yield True
 
-
+datapoints = args.data_point
 delta = 50_000_000
 
 def maxInsts() -> Iterator[bool]:
     sim_instr = 0
-    max_instr = 1_100_000_000
+    max_instr = 50_000_000 * (datapoints + 2)
     it = 0
 
     while True:
