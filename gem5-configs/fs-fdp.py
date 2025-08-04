@@ -59,9 +59,9 @@ from m5.objects import (
     L2XBar,
     BranchPredictor,
     LLBP,
-    LLBP_TAGE_64KB,
     LLBPRef,
     LTAGE_TAGE,
+    LLBP_TAGE_64KB,
     NULL
 )
 from gem5.resources.resource import obtain_resource,KernelResource,DiskImageResource
@@ -136,26 +136,36 @@ def predictor_map(predictor_name: str, latency: int) -> ConditionalPredictor:
             cbp = TAGE_SC_L_64KB(
                 tage=TAGE_SC_L_TAGE_64KB(),
                 latency=latency,
+                loop_enabled=True,
+                sc_enabled=True,
             )
         case "TSL128k":
             cbp = TAGE_SC_L_64KB(
                 tage=TAGE_128_N(),
                 latency=latency,
+                loop_enabled=True,
+                sc_enabled=True,
             )
         case "TSL256k":
             cbp = TAGE_SC_L_64KB(
                 tage=TAGE_256_N(),
                 latency=latency,
+                loop_enabled=True,
+                sc_enabled=True,
             )
         case "TSL512k":
             cbp = TAGE_SC_L_64KB(
                 tage=TAGE_512_N(),
                 latency=latency,
+                loop_enabled=True,
+                sc_enabled=True,
             )
         case "TSLInf":
             cbp = TAGE_SC_L_64KB(
                 tage=TAGE_Inf_N(),
                 latency=latency,
+                loop_enabled=True,
+                sc_enabled=True,
             )
         case "2Bit64k":
             cbp = TwoBit64k(
@@ -166,6 +176,8 @@ def predictor_map(predictor_name: str, latency: int) -> ConditionalPredictor:
                 base=TAGE_SC_L_64KB(
                     tage=LLBP_TAGE_64KB(),
                     latency=latency,
+                    loop_enabled=True,
+                    sc_enabled=True,
                 ),
                 rcrType=3,
                 rcrWindow=8,
@@ -181,6 +193,8 @@ def predictor_map(predictor_name: str, latency: int) -> ConditionalPredictor:
                 rcrTagWidth=14,
                 backingStorageLatency=6,
                 patterTagBits = 13,
+                lightningPredEnabled=True,
+                lightningPredCutoff=0
             )
         case "LLBPInf":
             cbp = LLBP(

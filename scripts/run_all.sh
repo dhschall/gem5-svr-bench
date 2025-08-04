@@ -27,7 +27,7 @@ OVERRIDING_PREDICTOR="none"
 
 set -xu
 
-GEM5=./../build/ARM/gem5.opt
+GEM5=./../build/ALL/gem5.opt
 GEM5_CONFIG=./gem5-configs/fs-fdp.py
 
 ARCH="arm64"
@@ -36,8 +36,8 @@ CPU_TYPE="o3"
 BRANCH_PREDICTOR="2Bit64k" 
 LATENCY=0
 
-OVERRIDING_PREDICTOR="TSL512k"
-OVERRIDING_LATENCY=1
+OVERRIDING_PREDICTOR="TSLInf"
+OVERRIDING_LATENCY=6
 
 # ----------------------------------------------------------
 
