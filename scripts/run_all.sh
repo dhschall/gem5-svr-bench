@@ -36,8 +36,8 @@ CPU_TYPE="o3"
 BRANCH_PREDICTOR="2Bit64k" 
 LATENCY=0
 
-OVERRIDING_PREDICTOR="TSLInf"
-OVERRIDING_LATENCY=6
+OVERRIDING_PREDICTOR="TSL64k"
+OVERRIDING_LATENCY=1 # and 2 for the comparison value
 
 # ----------------------------------------------------------
 
@@ -53,7 +53,7 @@ BENCHMARKS+=("dacapo-h2o")
 #BENCHMARKS+=("dacapo-kafka")
 BENCHMARKS+=("dacapo-luindex")
 BENCHMARKS+=("dacapo-lusearch")
-BENCHMARKS+=("dacapo-spring")
+BENCHMARKS+=("dacapo-spring") # this shows the largest difference
 BENCHMARKS+=("dacapo-tomcat")
 
 # These are not server workloads:
