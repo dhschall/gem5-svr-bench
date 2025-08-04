@@ -34,10 +34,10 @@ ARCH="arm64"
 CPU_TYPE="o3"
 
 BRANCH_PREDICTOR="2Bit64k" 
-LATENCY=0
+LATENCY=0 # (or 1 for the non buggy version)
 
 OVERRIDING_PREDICTOR="TSL64k"
-OVERRIDING_LATENCY=1 # and 2 for the comparison value
+OVERRIDING_LATENCY=0 # 1, 2 are not strictly decreasing in performance, BUG!
 
 # ----------------------------------------------------------
 
