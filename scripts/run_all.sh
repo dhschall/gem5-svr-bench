@@ -65,7 +65,7 @@ ticks["proto"]=88168143393873
 #ticks["swissmap"]=0
 ticks["libc"]=88198009891479 
 #ticks["tcmalloc"]=0
-ticks["compression"]=88044509003022
+ticks["compression"]=88049036099394
 #ticks["hashing"]=0
 ticks["stl"]=87949837500957
 ticks["dacapo-cassandra"]=3524023900880667
@@ -147,10 +147,6 @@ do
 
     pueue add -g "$PGROUP" -l "$EXPERIMENT-$bm" -- "$GEM5 \
         --outdir=$OUTDIR \
-        --debug-flags=O3PipeView \
-        --debug-start=${ticks["${bm}"]} \
-        --debug-end=$((${ticks["${bm}"]} + 70000)) \
-        --debug-file=trace.out \
             $GEM5_CONFIG \
                 --width $WIDTH \
                 --factor $FACTOR \

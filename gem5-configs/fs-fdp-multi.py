@@ -40,7 +40,6 @@ scons build/ALL/gem5.opt -j<NUM_CPUS>
 """
 from pathlib import Path
 from typing import Iterator
-
 import m5
 
 from m5.objects import (
@@ -66,7 +65,6 @@ from gem5.components.cachehierarchies.classic.caches.l2cache import L2Cache
 from gem5.components.cachehierarchies.classic.private_l1_cache_hierarchy import PrivateL1CacheHierarchy
 from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import PrivateL1PrivateL2CacheHierarchy
 from gem5.components.memory import DualChannelDDR4_2400
-from gem5.components.memory.simple import SingleChannelSimpleMemory
 from m5.objects.FuncUnit import *
 from m5.objects.FuncUnitConfig import *
 from m5.objects.FUPool import *
@@ -130,7 +128,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
     instShiftAmt = 0
     btb = BTB()
     indirectBranchPred = ITTAGE()
-    indirectBranchPred.itage.tagTableTagWidths = [
+    """ indirectBranchPred.itage.tagTableTagWidths = [
         0,
         20,
         20,
@@ -149,7 +147,7 @@ class BPTageSCL(TAGE_SC_L_64KB):
         20,
     ]
     indirectBranchPred.itage.logTagTableSizes = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    tage = TAGE_Inf_N()
+    tage = TAGE_Inf_N() """
     requiresBTBHit = True
     updateBTBAtSquash = True
 
@@ -359,8 +357,6 @@ class CacheHierarchyGiant(PrivateL1CacheHierarchy):
 
 # Memory: Dual Channel DDR4 2400 DRAM device.
 memory = DualChannelDDR4_2400(size="3GiB")
-#memory = SingleChannelSimpleMemory(size="3GiB",latency="0ns", latency_var="0ns", bandwidth="300GiB/s")
-
 
 
 # 2. Instruction prefetcher ---------------------------------------------
@@ -500,17 +496,15 @@ def executeExit() -> Iterator[bool]:
 
 datapoints = args.data_point
 delta = 50_000_000
+warmup = 4
 
 def maxInsts() -> Iterator[bool]:
-    sim_instr = 0
-    max_instr = 50_000_000 * (datapoints + 2)
-    it = 0
 
+    sim_instr = 0
+    max_instr = delta * warmup + datapoints * 300_000_000
+    it = 0
     while True:
-        if it >= 2:
-            m5.stats.dump()
-            m5.stats.reset()
-        else:
+        if it < warmup:
              m5.stats.reset()
         it += 1
         sim_instr += delta

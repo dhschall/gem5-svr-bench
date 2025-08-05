@@ -2,7 +2,7 @@ from gem5.components.processors.cpu_types import CPUTypes
 from gem5.isas import ISA
 
 import argparse
-from specbms import wlcfg
+from .specbms import wlcfg
 
 
 

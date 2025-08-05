@@ -55,6 +55,7 @@ from m5.objects import (
     L2XBar,
 )
 
+from gem5.components.boards.simple_board import SimpleBoard
 from gem5.simulate.exit_event import ExitEvent
 from gem5.simulate.simulator import Simulator
 from gem5.utils.requires import requires
@@ -70,6 +71,7 @@ from m5.objects.FuncUnit import *
 from m5.objects.FuncUnitConfig import *
 from m5.objects.FUPool import *
 
+from math import ceil
 
 from util.arguments_spec import *
 from util.specbms import wlcfg
@@ -445,41 +447,12 @@ cache_hierarchy = CacheHierarchy(
 
 
 
-# Here we setup the board.
-if args.isa == "Arm":
-    #  The ArmBoard allows for Full-System ARM simulations.
-    from gem5.components.boards.arm_board import ArmBoard
-    from m5.objects import (
-        ArmDefaultRelease,
-        VExpress_GEM5_V1,
-    )
-
-    board = ArmBoard(
-        clk_freq="3GHz",
-        processor=processor,
-        memory=memory,
-        cache_hierarchy=cache_hierarchy,
-        # The ArmBoard requires a `release` to be specified. This adds all the
-        # extensions or features to the system. We are setting this to Armv8
-        # (ArmDefaultRelease) in this example config script.
-        release = ArmDefaultRelease.for_kvm(),
-        # The platform sets up the memory ranges of all the on-chip and
-        # off-chip devices present on the ARM system. ARM KVM only works with
-        # VExpress_GEM5_V1 on the ArmBoard at the moment.
-        platform = VExpress_GEM5_V1(),
-    )
-
-elif args.isa == "X86":
-    # The X86Board allows for Full-System X86 simulations.
-    from gem5.components.boards.x86_board import X86Board
-    board = X86Board(
-        clk_freq="3GHz",
-        processor=processor,
-        memory=memory,
-        cache_hierarchy=cache_hierarchy,
-    )
-else:
-    raise ValueError("ISA not supported")
+board = SimpleBoard(
+    clk_freq="3GHz",
+    processor=processor,
+    memory=memory,
+    cache_hierarchy=cache_hierarchy,
+)
 
 
 simpoint_info = SimpointDirectoryResource(
