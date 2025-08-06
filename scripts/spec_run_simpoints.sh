@@ -133,7 +133,7 @@ for sid in $(seq 0 ${simpoints["$bm"]}); do
 
    mkdir -p $RESDIR
 
-   pueue add -g "$PGROUP" -l "$EXPERIMENT-$bm-$sid" -- "$GEM5 \
+   pueue add -g "$PGROUP" -l "$EXPERIMENT-$bm-sid$sid" -- "$GEM5 \
     --outdir=$RESDIR \
     ${CONFIG} \
     --workload $bm \
@@ -146,7 +146,7 @@ for sid in $(seq 0 ${simpoints["$bm"]}); do
     --cpu-type $CPU_TYPE \
     --checkpoint-dir $CHECKPOINT_BASE \
     --simpoint-dir $SIMPOINT_BASE \
-    > $RESDIR/gem5.log 2>&1 &"
+    > $RESDIR/gem5.log 2>&1"
 
 done
 done
