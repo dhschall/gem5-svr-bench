@@ -483,7 +483,7 @@ def max_inst():
             simulator.schedule_max_insts(
                 board.get_simpoint().get_simpoint_interval()
             )
-            m5.stats.dump()
+          #  m5.stats.dump()
             m5.stats.reset()
             yield False
 
