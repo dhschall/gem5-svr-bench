@@ -162,6 +162,7 @@ def main():
             print(f"\nData for Experiment {experiment_name} Benchmark {benchmark_name}:\n {df}\n")
             df = df.assign(experiment=experiment_name, benchmark=benchmark_name)
             if args.spec:
+                df['sid_number'] = sid_number
                 df['sid_weight'] = sid_weights[sid_number]
             result = pd.concat([result, df], ignore_index=True)
     
@@ -175,11 +176,22 @@ def main():
     # ipc
     # 1.3 
     if args.spec:
-        result = result.groupby(['experiment', 'benchmark']).agg(
-            {k: lambda x: (x * float(x.iloc[0]['sid_weight'])).sum() for k in result.columns if k not in ['experiment', 'benchmark', 'sid_weight']}
-        ).reset_index()
+        #save before aggregation
+        result.to_csv(f'{args.set}_raw_results.csv' if args.set != '' else f'raw_results.csv', index=False)
+
+        def weighted_sum(group):
+            agg_columns = [k for k in group.columns if k not in ['experiment', 'benchmark', 'sid_weight', 'sid_number']]
+            out = {}
+            for col in agg_columns:
+                # Multiply each value by its corresponding sid_weight, then sum
+                out[col] = (group[col].astype(float) * group['sid_weight'].astype(float)).sum()
+            out['experiment'] = group['experiment'].iloc[0]
+            out['benchmark'] = group['benchmark'].iloc[0]
+            return pd.Series(out)
+
+        result = result.groupby(['experiment', 'benchmark']).apply(weighted_sum).reset_index(drop=True)
         # remove sid_weight column
-        result = result.drop(columns=['sid_weight'])            
+        result = result.drop(columns=['sid_weight', 'sid_number'], errors='ignore')            
 
     # Save the result to a CSV file
     result.to_csv(f'{args.set}_results.csv' if args.set != '' else f'results.csv', index=False)
