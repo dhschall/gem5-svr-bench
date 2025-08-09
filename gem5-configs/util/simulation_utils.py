@@ -100,10 +100,12 @@ def configure_cpu(cpu, args):
         cpu.LQEntries = 200 * args.factor
         cpu.SQEntries = 200 * args.factor
 
-        # set number of prefetches issued by fetch stage
-        cpu.maxPrefetchesPerCycle= 2* args.ppc
-        cpu.maxOutstandingTranslations=8 * args.ppc
-        cpu.maxOutstandingPrefetches=8 * args.ppc
+        # configure multiple branch prediction
+        if args.ppc > 0:
+            cpu.maxPrefetchesPerCycle= 2* args.ppc
+            cpu.maxOutstandingTranslations=8 * args.ppc
+            cpu.maxOutstandingPrefetches=8 * args.ppc
+            cpu.numPredPerCycle = args.ppc
 
         # Custom functional unit configuration
         cpu.fuPool = S_FUPool(args.factor)
@@ -114,7 +116,6 @@ def configure_cpu(cpu, args):
         # Scaling the number of registers used for renaming
         scale_registers(cpu, args.factor)
 
-        cpu.numPredPerCycle = args.ppc
 
         #Setting the width of the different stages  
         set_width (cpu, args.width)
