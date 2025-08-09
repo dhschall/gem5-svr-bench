@@ -86,5 +86,34 @@ parser.add_argument(
     help="The number of data points to simulate"
 )
 
+parser.add_argument(
+    "--inf_tage",
+    action="store_true",
+    default=False,
+    help="Enable Infinite TAGE branch predictor",
+)
+
+parser.add_argument(
+    "--inf_phast",
+    action="store_true",
+    default=False,
+    help="Enable Infinite PHAST memory dependency predictor",
+)
+
+parser.add_argument(
+    "--big_squash",
+    action="store_true",
+    default=False,
+    help="Set the the squash width equal to ROB size",
+)
+
+
+parser.add_argument(
+    "--giant_cache",
+    action="store_true",
+    default=False,
+    help="Set the cache hierarchy to giant cache mode",
+)
+
 
 args = parser.parse_args()

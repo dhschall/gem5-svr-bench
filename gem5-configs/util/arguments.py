@@ -86,6 +86,34 @@ parser.add_argument(
     help="Enable FDP",
 )
 
+parser.add_argument(
+    "--inf_tage",
+    action="store_true",
+    default=False,
+    help="Enable Infinite TAGE branch predictor",
+)
+
+parser.add_argument(
+    "--inf_phast",
+    action="store_true",
+    default=False,
+    help="Enable Infinite PHAST memory dependency predictor",
+)
+
+parser.add_argument(
+    "--big_squash",
+    action="store_true",
+    default=False,
+    help="Set the the squash width equal to ROB size",
+)
+
+parser.add_argument(
+    "--giant_cache",
+    action="store_true",
+    default=False,
+    help="Set the cache hierarchy to giant cache mode",
+)
+
 isa_choices = {
     "X86": ISA.X86,
     "Arm": ISA.ARM,
