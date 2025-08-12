@@ -76,6 +76,9 @@ cpu = processor.cores[-1].core
 
 configure_cpu(cpu, args)
 
+cpu.backComSize = 20
+cpu.forwardComSize = 20
+
 cache_hierarchy = configure_cache(args)
 
 # Here we setup the board.
