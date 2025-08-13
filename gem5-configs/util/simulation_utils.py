@@ -129,10 +129,10 @@ def configure_cpu(cpu, args):
         #tuning phast
         if args.inf_phast:
             cpu.phast_num_rows = 256
-            cpu.phast_associativity = 8
-            cpu.phast_tag_bits = 16
+            cpu.phast_associativity = 16
+            cpu.phast_tag_bits = 20
             cpu.phast_max_counter = 100
-            cpu.LSQDepCheckShift = 2
+            cpu.LSQDepCheckShift = 0
 
         #tune mmu 
         cpu.mmu.l2_shared.size = RTCPO2(3840 * args.factor)
