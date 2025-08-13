@@ -41,27 +41,28 @@ INF_TAGE=0
 BIG_SQUASH=0 
 INF_PHAST=0
 GIANT_CACHE=0
+fbInFTQ=0
 
 BENCHMARKS=()
 BENCHMARKS+=("nodeapp")
 #BENCHMARKS+=("nodeapp-nginx")
-BENCHMARKS+=("proto")
+#BENCHMARKS+=("proto")
 #BENCHMARKS+=("swissmap")
 BENCHMARKS+=("libc")
 #BENCHMARKS+=("tcmalloc")
 BENCHMARKS+=("compression")
 #BENCHMARKS+=("hashing")
-BENCHMARKS+=("stl")
-BENCHMARKS+=("dacapo-cassandra")
-BENCHMARKS+=("dacapo-h2")
-BENCHMARKS+=("dacapo-h2o")
-BENCHMARKS+=("dacapo-kafka")
+#BENCHMARKS+=("stl")
+#BENCHMARKS+=("dacapo-cassandra")
+#BENCHMARKS+=("dacapo-h2")
+#BENCHMARKS+=("dacapo-h2o")
+#BENCHMARKS+=("dacapo-kafka")
 BENCHMARKS+=("dacapo-luindex")
 BENCHMARKS+=("dacapo-lusearch")
-BENCHMARKS+=("dacapo-spring")
-BENCHMARKS+=("dacapo-tomcat")
-BENCHMARKS+=("renaissance-http")
-BENCHMARKS+=("renaissance-chirper")
+#BENCHMARKS+=("dacapo-spring")
+#BENCHMARKS+=("dacapo-tomcat")
+#BENCHMARKS+=("renaissance-http")
+#BENCHMARKS+=("renaissance-chirper")
 
 declare -A ticks
 ticks["nodeapp"]=156519779329548
@@ -88,7 +89,7 @@ ticks["renaissance-chirper"]=174782875564602
 
 # Parsing args
 # i set inf_tage, -b set big squash, -g set giant cache -m set inf_phast
-while getopts "w:f:p:s:d:ibmg" opt; do
+while getopts "w:f:p:s:d:ibmgq" opt; do
     case $opt in
     w) WIDTH=$OPTARG ;;
     f) FACTOR=$OPTARG ;;
@@ -99,6 +100,7 @@ while getopts "w:f:p:s:d:ibmg" opt; do
     b) BIG_SQUASH=1 ;;
     m) INF_PHAST=1 ;;
     g) GIANT_CACHE=1 ;;
+    q) fbInFTQ=1 ;;
     ?) echo "invalid option" ;;
     esac
 done
@@ -115,6 +117,9 @@ if [ "$INF_PHAST" -eq 1 ]; then
 fi
 if [ "$GIANT_CACHE" -eq 1 ]; then
     SIM_FLAGS="$SIM_FLAGS --giant_cache"
+fi
+if [ "$fbInFTQ" -eq 1 ]; then
+    SIM_FLAGS="$SIM_FLAGS --fbInFTQ"
 fi
 
 # Set experiment name
