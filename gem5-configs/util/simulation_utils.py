@@ -44,7 +44,6 @@ from m5.objects.FuncUnit import *
 from m5.objects.FuncUnitConfig import *
 from m5.objects.FUPool import *
 
-from math import ceil
 
 #############################################################
 ######################### Functions #########################
@@ -61,11 +60,11 @@ def RTCPO2(n):
 
 def scale_registers(cpu_, factor):
 
-    cpu_.numPhysIntRegs = ceil(500 * factor)
-    cpu_.numPhysFloatRegs = ceil(400 * factor)
-    cpu_.numPhysVecRegs = ceil(256 * factor)
-    cpu_.numPhysVecPredRegs = ceil(32 * factor)
-    cpu_.numPhysMatRegs = ceil(2 * factor)
+    cpu_.numPhysIntRegs = 500 * factor
+    cpu_.numPhysFloatRegs = 400 * factor
+    cpu_.numPhysVecRegs = min(256 * factor, 512)
+    cpu_.numPhysVecPredRegs = 32 * factor
+    cpu_.numPhysMatRegs = 2 * factor
     cpu_.numPhysCCRegs = 5*cpu_.numPhysIntRegs
     return
 
