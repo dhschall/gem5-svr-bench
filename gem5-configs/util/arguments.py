@@ -157,6 +157,13 @@ parser.add_argument(
     help="The number of data points to simulate"
 )
 
+parser.add_argument(
+    "--fbInFTQ",
+    action="store_true",
+    default=False,
+    help="Enable the Fetch target queue to store the fetch block information in the FTQ"
+)
+
 args = parser.parse_args()
 
 

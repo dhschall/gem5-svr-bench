@@ -115,5 +115,11 @@ parser.add_argument(
     help="Set the cache hierarchy to giant cache mode",
 )
 
+parser.add_argument(
+    "--fbInFTQ",
+    action="store_true",
+    default=False,
+    help="Enable the Fetch target queue to store the fetch block information in the FTQ"
+)
 
 args = parser.parse_args()

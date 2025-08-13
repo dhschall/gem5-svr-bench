@@ -107,6 +107,10 @@ def configure_cpu(cpu, args):
             cpu.maxOutstandingPrefetches=8 * args.ppc
             cpu.numPredPerCycle = args.ppc
 
+        # Enable the Fetch target queue to store the fetch block information
+        if args.fbInFTQ:
+            cpu.enableFBinFTQ = True
+
         # Custom functional unit configuration
         cpu.fuPool = S_FUPool(args.factor)
 
