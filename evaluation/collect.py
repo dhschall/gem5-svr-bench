@@ -177,7 +177,7 @@ def main():
     # 1.3 
     if args.spec:
         #save before aggregation
-        result.to_csv(f'{args.set}_raw_results.csv' if args.set != '' else f'raw_results.csv', index=False)
+        #result.to_csv(f'{args.set}_raw_results.csv' if args.set != '' else f'raw_results.csv', index=False)
 
         def weighted_sum(group):
             agg_columns = [k for k in group.columns if k not in ['experiment', 'benchmark', 'sid_weight', 'sid_number']]
@@ -194,7 +194,7 @@ def main():
         result = result.drop(columns=['sid_weight', 'sid_number'], errors='ignore')            
 
     # Save the result to a CSV file
-    result.to_csv(f'{args.set}_results.csv' if args.set != '' else f'results.csv', index=False)
+    result.to_csv(f'{"SPEC_" if args.spec else ""}{args.set}_results.csv' if args.set != '' else f'{"SPEC_" if args.spec else ""}results.csv', index=False)
 
 
 
