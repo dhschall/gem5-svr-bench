@@ -24,12 +24,34 @@ from gem5.components.processors.cpu_types import CPUTypes
 from gem5.isas import ISA
 
 from .workloads import *
+from .workloads import svr_workloads as wlcfg
 import argparse
 
 
 parser = argparse.ArgumentParser(
     description="gem5 configuration script to run a full system simulation"
 )
+
+parser.add_argument(
+    "--checkpoint-dir",
+    type=str,
+    default="simpoint-checkpoint",
+)
+
+parser.add_argument(
+    "--simpoint-dir",
+    type=str,
+    default="./",
+)
+
+parser.add_argument(
+    "--simpoint-mode",
+    type=str,
+    default="",
+    choices=["", "analysis", "checkpoint"]
+)
+
+parser.add_argument("--sid", type=int)
 
 parser.add_argument(
     "--kernel",
