@@ -5,6 +5,11 @@ The repository comprises several benchmarks from different benchmark suites. It 
 We support workloads from Googles [Fleetbench](https://github.com/google/fleetbench) and Meta's [DCPerf]()
 
 
+## Simpoints
+
+The repo contains also helper configs and scripts to create simpoints for benchmarks to increase representativeness while reducing simulation time.
+See the [simpoint readme](./simpoints/README.md) for more details.
+
 
 ## Own benchmarks
 

@@ -264,7 +264,7 @@ class BPTageSCL(BranchPredictor):
             self.conditionalBranchPred = TAGE_SC_L_64KB()
 
     instShiftAmt = 2
-    # indirectBranchPred = ITTAGE()
+    indirectBranchPred = ITTAGE()
     requiresBTBHit = True
     updateBTBAtSquash = True
 
