@@ -81,7 +81,7 @@ ssh gem5@localhost -p 8888
 
 ## Boot benchmark and take snapshot
 
-Before we can start simulating the actual benchmark (1) linux has to be booted, (2) the docker image has to be started and (3) the benchmarks JIT engine -- very common for server applications -- has to be warmed up.
+Before we can start simulating the actual benchmark (1) Linux has to be booted, (2) the docker image has to be started and (3) the benchmarks JIT engine -- very common for server applications -- has to be warmed up.
 The KVM accelerated core is used to perform all three steps after which a checkpoint is taken.
 > Note KVM can only be used if the host ISA is the same as the simulated system.
 
