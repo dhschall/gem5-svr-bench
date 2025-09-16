@@ -108,7 +108,8 @@ You need to set all three parameters:
  - w is the pipeline width
  - p the number of prediction per cycle 
  - f the factor to scale the basic pipeline configuration in the fs-fdp-multi.py file
-Optionally, you can pass an option -s SET to store the results of an experiment in a set (directory) of similars expirements
+Optionally, you can pass an option -s SET to store the results of an experiment in a set (directory) of similars experiments
+- Other flags can be set to enable pipeline optimizations: -i set infinite TAGE, -b set one cycle squash, -g set giant cache -m set infinite PHAST -q set fbInFTQ
 
 
 Similar to the setup process, the output can be observed in the `results/<arch>/<SCENARIO_NAME>/*` folders or 
