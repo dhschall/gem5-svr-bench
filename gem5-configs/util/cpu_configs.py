@@ -138,16 +138,16 @@ def configure_cpu_multi_ppc(cpu, args):
 
 
 
-def config_GNR(cpu, fdp=True, factor=1, width=8):
+def config_GNR(cpu, factor=1, width=8, fdp=False):
     """
     Configuration for Intel Xeon Granit Rapid
     8-wide, 576-entry ROB
     """
 
     # Pipeline delays
-    cpu.fetchToDecodeDelay = 3
+    cpu.fetchToDecodeDelay = 2
     cpu.decodeToRenameDelay = 2
-    cpu.renameToIEWDelay = 3
+    cpu.renameToIEWDelay = 2
     cpu.issueToExecuteDelay = 1
     cpu.iewToCommitDelay = 2
 
@@ -205,17 +205,100 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 
 
 
+
+
+def config_PHX_core(cpu, fdp=False, factor=1, width=8, ppc=1, real_depth=True, inf_pred=False):
+
+
+
+    # Pipeline delays
+    cpu.fetchToDecodeDelay = 3 if real_depth else 1
+    cpu.decodeToRenameDelay = 2 if real_depth else 1
+    cpu.renameToIEWDelay = 3 if real_depth else 1
+    cpu.issueToExecuteDelay = 1
+    cpu.iewToCommitDelay = 2 if real_depth else 1
+
+    cpu.forwardComSize = 19
+    cpu.backComSize = 19
+
+    # Pipeline widths
+    cpu.fetchWidth = width
+    cpu.decodeWidth = width
+    cpu.renameWidth = width
+    cpu.issueWidth = 2*width
+    # cpu.issueWidth = 12
+    cpu.dispatchWidth = width
+    cpu.wbWidth = 2*width
+    cpu.commitWidth = 2*width
+    # cpu.commitWidth = 12
+    cpu.squashWidth = 4 * width * factor
+    cpu.instantSquash = True
+    # cpu.ignoreSquashedInstr = True
+    # cpu.squashWidth = 12
+    cpu.enableFBinFTQ = True
+
+    cpu.fuPool = S_FUPool(factor=factor)
+
+    cpu.fetchBufferSize = 64
+    cpu.fetchQueueSize = 128 * factor
+    cpu.fetchTargetWidth = 64
+    cpu.minInstSize = 4
+
+    # Set size if relevant buffers
+    cpu.numFTQEntries = 24 * ppc
+    cpu.numROBEntries = 512 * factor
+    cpu.numIQEntries = 512 * factor
+    cpu.LQEntries = 189 * factor
+    cpu.SQEntries = 120 * factor
+    cpu.LFSTSize = 1024 * factor
+    cpu.SSITSize = "1024"
+
+
+    #tune mmu
+    cpu.mmu.l2_shared.size = 2048 * factor
+    cpu.mmu.l2_shared.assoc = 8
+    cpu.mmu.itb.size = 256 * factor
+    cpu.mmu.itb.assoc = 8
+    cpu.mmu.dtb.size = 128 * factor
+    cpu.mmu.dtb.size = 16
+    cpu.mmu.stage2_itb.size = 256 * factor
+    cpu.mmu.stage2_dtb.size = 128 * factor
+
+
+    cpu.numPhysIntRegs = 512 * factor
+    cpu.numPhysFloatRegs = 406 * factor
+    cpu.numPhysVecRegs = min(256 * factor, 512)
+    cpu.numPhysVecPredRegs = 32 * factor
+    cpu.numPhysMatRegs = 2 * factor
+    cpu.numPhysCCRegs = cpu.numPhysIntRegs * 5
+
+
+    #tuning phast
+    if inf_pred:
+        cpu.phast_num_rows = 2**12
+        cpu.phast_associativity = 16
+        cpu.phast_tag_bits = 20
+        cpu.phast_max_counter = 100
+        cpu.LSQDepCheckShift = 0
+
+    # configure multiple branch prediction
+    if ppc > 0:
+        cpu.maxPrefetchesPerCycle= 2 * ppc
+        cpu.maxOutstandingTranslations=4 * ppc
+        cpu.maxOutstandingPrefetches=4 * ppc
+        cpu.maxFTPerCycle=8*ppc
+        cpu.maxTakenPredPerCycle=ppc
+
+
     if fdp:
+
         #Enable the decoupled front-end
         cpu.decoupledFrontEnd = True
         cpu.fetchTargetWidth = 64
         cpu.minInstSize = 4
 
         # Set size of relevant buffers
-        cpu.numFTQEntries = 24
-
-
-
+        cpu.numFTQEntries = 16 * ppc
 
 
 #############################################################
@@ -224,8 +307,10 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 
 
 class BTB(SimpleBTB):
-    numEntries = 16 * 1024
-    tagBits = 16
+    def __init__(self, factor=1):
+        super().__init__()
+        self.numEntries = RTCPO2(16 * 1024 * factor)
+    tagBits = 32
     associativity = 8
 
 class TAGE_Inf_N(TAGE_SC_L_64KB):
@@ -267,7 +352,6 @@ class BPTageSCL(BranchPredictor):
     indirectBranchPred = ITTAGE()
     requiresBTBHit = True
     updateBTBAtSquash = True
-
 
 # -------------- Backend Configutation --------- #
 #-----------------------------------------------

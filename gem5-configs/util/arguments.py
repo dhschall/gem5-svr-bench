@@ -23,8 +23,8 @@
 from gem5.components.processors.cpu_types import CPUTypes
 from gem5.isas import ISA
 
-from .workloads import *
-from .workloads import svr_workloads as wlcfg
+# from .workloads import *
+# from .workloads import svr_workloads as wlcfg
 import argparse
 
 
@@ -72,7 +72,7 @@ parser.add_argument(
     action="store",
     type=str,
     default="nodeapp",
-    choices=wlcfg.keys(),
+    # choices=wlcfg.keys(),
     help="""Specify a workload that should run in the simulator.""",
 )
 
@@ -121,6 +121,45 @@ parser.add_argument(
     help="The ISA to simulate.",
     choices=isa_choices.keys(),
 )
+
+parser.add_argument(
+    "--width",
+    type=int,
+    default=12,
+    help="The width of the pipeline to simulate."
+)
+
+
+parser.add_argument(
+    "--factor",
+    type=int,
+    default=1,
+    help="The factor to scale the pipeline capacity."
+)
+
+parser.add_argument(
+    "--ppc",
+    type=int,
+    default=1,
+    help="The number of prediction per cycle to simulate."
+)
+
+parser.add_argument(
+    "--inf-pred",
+    type=int,
+    default=0,
+    choices=[0,1],
+    help="The number of prediction per cycle to simulate."
+)
+
+parser.add_argument(
+    "--lfactor",
+    type=str,
+    default="0",
+    help="The factor to scale the pipeline capacity."
+)
+
+
 
 args = parser.parse_args()
 
