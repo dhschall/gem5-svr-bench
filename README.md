@@ -1,6 +1,7 @@
 # gem5 Server Benchmarks
 
-This repo contains various server and data center workloads runnable in gem5 full-sytem mode
+This repo contains various server and data center workloads runnable in gem5 full-sytem mode.
+Refer to the benchmark [README](./benchmarks/README.md) for all benchmarks we currently support.
 
 > [!IMPORTANT]
 > This repo is in development phase. Please raise issues or propose PR if you encounter problems. We appreciate any feedback.

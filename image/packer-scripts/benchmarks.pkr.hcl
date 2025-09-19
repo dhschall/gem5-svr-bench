@@ -131,6 +131,11 @@ build {
     ]
   }
 
+  # # Install Java Apps --------------------------
+  # provisioner "shell" {
+  #   execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+  #   scripts         = ["${local.rootdir}/benchmarks/java-apps/install_java_apps.sh"]
+  # }
 
   #### Shutdown the VM ###########
   provisioner "shell" {
