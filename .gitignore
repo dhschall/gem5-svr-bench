@@ -39,7 +39,7 @@ image/artifacts/*
 kernel/linux/*
 m5out
 checkpoints
-results
+results*
 *.img
 *.log
 image/qemu.log

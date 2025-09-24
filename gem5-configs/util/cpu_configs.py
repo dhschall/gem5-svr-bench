@@ -68,74 +68,6 @@ def set_width(cpu_, width):
     cpu_.squashWidth = 5*width
     cpu_.dispatchWidth = width
 
-# Configure the CPU with the specified arguments
-def configure_cpu_multi_ppc(cpu, args):
-    if not args.fdp:
-        exit("This script is meant to be used with FDP enabled for mutiple branch prediction. Please use the --fdp flag.")
-
-    #Enable the decoupled front-end
-    cpu.decoupledFrontEnd = True
-    #set branch predictor
-    cpu.branchPred = BPTageSCL(args.inf_tage)
-    cpu.branchPred.btb = BTB(args.factor)
-    #configure frontend
-    cpu.fetchBufferSize = 64
-    cpu.fetchQueueSize = 128 * args.factor
-    cpu.fetchTargetWidth = 64
-    cpu.minInstSize = 1 if args.isa == "X86" else 4
-
-        # Set size of relevant buffers
-    cpu.numFTQEntries = 50 * args.factor
-    cpu.numROBEntries = 576 * args.factor
-    cpu.numIQEntries = 300 * 2 * args.factor
-    cpu.LQEntries = 200 * args.factor
-    cpu.SQEntries = 200 * args.factor
-
-    # configure multiple branch prediction
-    if args.ppc > 0:
-        cpu.maxPrefetchesPerCycle= 2* args.ppc
-        cpu.maxOutstandingTranslations=8 * args.ppc
-        cpu.maxOutstandingPrefetches=8 * args.ppc
-        cpu.numPredPerCycle = args.ppc
-
-    # Enable the Fetch target queue to store the fetch block information
-    if args.fbInFTQ:
-        cpu.enableFBinFTQ = True
-
-    # Custom functional unit configuration
-    cpu.fuPool = S_FUPool(args.factor)
-
-    # Return address stack size
-    cpu.branchPred.ras.numEntries=128
-
-    # Scaling the number of registers used for renaming
-    scale_registers(cpu, args.factor)
-
-
-    #Setting the width of the different stages
-    set_width (cpu, args.width)
-
-    if args.big_squash:
-        cpu.squashWidth = cpu.numROBEntries
-
-    #tuning phast
-    if args.inf_phast:
-        cpu.phast_num_rows = 256
-        cpu.phast_associativity = 16
-        cpu.phast_tag_bits = 20
-        cpu.phast_max_counter = 100
-        cpu.LSQDepCheckShift = 0
-
-    #tune mmu
-    cpu.mmu.l2_shared.size = RTCPO2(3840 * args.factor)
-    cpu.mmu.l2_shared.assoc = 8
-    cpu.mmu.itb.size = RTCPO2(256 * args.factor)
-    cpu.mmu.dtb.size = RTCPO2(256 * args.factor)
-    cpu.mmu.stage2_itb.size = RTCPO2(256 * args.factor)
-    cpu.mmu.stage2_dtb.size = RTCPO2(256 * args.factor)
-
-
-
 
 
 def config_GNR(cpu, fdp=True, factor=1, width=8):
@@ -213,9 +145,6 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 
         # Set size of relevant buffers
         cpu.numFTQEntries = 24
-
-
-
 
 
 #############################################################
