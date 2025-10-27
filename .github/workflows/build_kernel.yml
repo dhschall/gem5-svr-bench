@@ -102,7 +102,7 @@ jobs:
 
           
       - name: Upload Kernel Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: vmlinux-${{ matrix.version }}-${{ matrix.arch }}
           path: vmlinux-${{ matrix.version }}-${{ matrix.arch }}
