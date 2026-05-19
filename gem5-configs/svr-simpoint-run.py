@@ -53,7 +53,7 @@ from gem5.utils.requires import requires
 import m5
 from m5.objects import (
     ArmDefaultRelease,
-    VExpress_GEM5_V1
+    VExpress_GEM5_V1,
 )
 from util.workloads import svr_workloads as wlcfg
 from util.arguments import *
@@ -73,11 +73,35 @@ processor = SimpleProcessor(
 )
 cpu = processor.get_cores()[-1].core
 
-config_GNR(cpu, fdp=args.fdp)
+config_GNR(cpu, fdp=args.fdp, factor=args.factor, width=args.width, maxTakenPredPerCycle=args.maxTakenPredPerCycle, numFTQEntries=args.numFTQEntries)
 
 #set branch predictor
-cpu.branchPred = BPTageSCL()
-cpu.branchPred.btb = BTB()
+cpu.branchPred = BPTageSCL(TAGELatency=args.TAGELatency)
+cpu.branchPred.btb = BTB(l1NumEntries=args.l1NumEntries,l2NumEntries=args.l2NumEntries,l3NumEntries=args.l3NumEntries,l1Associativity=args.l1Associativity,l2Associativity=args.l2Associativity,pBufferSize=args.pBufferSize,pPolicy=args.pPolicy,l2Latency=args.l2Latency,l3Latency=args.l3Latency,
+    trainBitsOnLookup=args.trainBitsOnLookup,
+    trainBitsOnCommit=args.trainBitsOnCommit,
+    togetherArrive=args.togetherArrive,
+    prefetchOnL1Hit=args.prefetchOnL1Hit,
+    prefetchOnPrefetchHit=args.prefetchOnPrefetchHit,
+    cleanBitsOnL1Promotion=args.cleanBitsOnL1Promotion,
+    noPrefetchLatency=args.noPrefetchLatency,
+    pDepth=args.pDepth,
+    finalMarkov=args.finalMarkov,
+    markovUseRecency=args.markovUseRecency,
+    prefetchAllSuccessors=args.prefetchAllSuccessors,
+    limitRet=args.limitRet,
+    newPBits=args.newPBits,
+    onlyCall=args.onlyCall,
+    onlyCallAndBackward=args.onlyCallAndBackward,
+    depthOnlyCall=args.depthOnlyCall,
+    prefetchOnlyCB=args.prefetchOnlyCB,
+    prefetchOnlyUB=args.prefetchOnlyUB,
+    useCompressedTagFilter=args.useCompressedTagFilter,
+    compressedTagBits=args.compressedTagBits,
+    forwardLoopExit=args.forwardLoopExit,
+    allConditional=args.allConditional,
+    maxChainTrackerEntries=args.maxChainTrackerEntries
+    )
 
 
 simpoint_info = SimpointDirectoryResource(
@@ -128,7 +152,7 @@ board.set_kernel_disk_workload(
     bootloader=obtain_resource("arm64-bootloader"),
     readfile_contents=wlcfg[args.workload]["runscript"](wlcfg[args.workload], 1),
     kernel_args=kernel_args,
-    checkpoint=Path("{}/{}".format(args.checkpoint_dir, args.workload)),
+    checkpoint=Path("{}/{}/cpt.SimPoint{}".format(args.checkpoint_dir, args.workload, args.sid)),
 )
 
 def workitems(start):

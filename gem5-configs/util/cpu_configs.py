@@ -25,6 +25,8 @@ This file contains utility functions for configuring the CPU core
 
 from m5.objects import (
     SimpleBTB,
+    MultiLevelBTB,
+    LocalBP,
     TAGE_SC_L_64KB,
     TAGE_SC_L_TAGE_64KB,
     ITTAGE,
@@ -138,14 +140,15 @@ def configure_cpu_multi_ppc(cpu, args):
 
 
 
-def config_GNR(cpu, fdp=True, factor=1, width=8):
+def config_GNR(cpu, fdp=True, factor=2, width=16, maxTakenPredPerCycle=1, numFTQEntries=16):
     """
     Configuration for Intel Xeon Granit Rapid
     8-wide, 576-entry ROB
     """
 
     # Pipeline delays
-    cpu.fetchToDecodeDelay = 3
+    cpu.fetchToDecodeDelay = 8
+    cpu.decodeToFetchDelay = 2
     cpu.decodeToRenameDelay = 2
     cpu.renameToIEWDelay = 3
     cpu.issueToExecuteDelay = 1
@@ -164,7 +167,7 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
     cpu.wbWidth = 2*width
     cpu.commitWidth = 2*width
     # cpu.commitWidth = 12
-    cpu.squashWidth = 3 * width * factor
+    # cpu.squashWidth = 3 * width * factor
     # cpu.squashWidth = 12
 
     cpu.fuPool = S_FUPool()
@@ -177,6 +180,8 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 
     # Set size if relevant buffers
     cpu.numFTQEntries = 16 * factor
+    # Modified
+    cpu.maxTakenPredPerCycle = maxTakenPredPerCycle
     cpu.numROBEntries = 576 * factor
     cpu.numIQEntries = 576 * factor
     cpu.LQEntries = 189 * factor
@@ -212,7 +217,7 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
         cpu.minInstSize = 4
 
         # Set size of relevant buffers
-        cpu.numFTQEntries = 24
+        cpu.numFTQEntries = numFTQEntries
 
 
 
@@ -221,12 +226,74 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 #############################################################
 ########### Classes for the different components ###########
 ############################################################
+# class BTB(SimpleBTB):
+#     numEntries = 16 * 1024
+#     tagBits = 16
+#     associativity = 8
 
-
-class BTB(SimpleBTB):
-    numEntries = 16 * 1024
-    tagBits = 16
-    associativity = 8
+class BTB(MultiLevelBTB):
+    def __init__(self, l1NumEntries=128, l2NumEntries=16384, l3NumEntries=32768, l1Associativity=8, l2Associativity=8, pBufferSize=8, pPolicy=4, l2Latency=4, l3Latency=8,
+        trainBitsOnLookup=False,
+        trainBitsOnCommit=False,
+        togetherArrive=False,
+        prefetchOnL1Hit=False,
+        prefetchOnPrefetchHit=False,
+        cleanBitsOnL1Promotion=False,
+        noPrefetchLatency=False,
+        pDepth=1,
+        finalMarkov=False,
+        markovUseRecency=False,
+        prefetchAllSuccessors=False,
+        limitRet=False,
+        newPBits=False,
+        onlyCall=False,
+        onlyCallAndBackward=False,
+        depthOnlyCall=False,
+        prefetchOnlyCB=False,
+        prefetchOnlyUB=False,
+        useCompressedTagFilter=False,
+        compressedTagBits=4,
+        forwardLoopExit=False,
+        allConditional=False,
+        maxChainTrackerEntries=4,
+        ):
+        super().__init__()
+        self.l1NumEntries = l1NumEntries
+        self.l1Associativity = l1Associativity
+        self.l1Latency = 0
+        self.l2NumEntries = l2NumEntries
+        self.l2Associativity = l2Associativity
+        self.l2Latency = l2Latency
+        self.l3NumEntries = l3NumEntries
+        self.l3Associativity = 8
+        self.l3Latency = l3Latency
+        self.enableL3 = False
+        self.l1PrefetchPolicy = pPolicy
+        self.pBufferSize = pBufferSize
+        self.prefetchOnlyForward = False
+        self.trainBitsOnLookup = trainBitsOnLookup
+        self.trainBitsOnCommit = trainBitsOnCommit
+        self.togetherArrive = togetherArrive
+        self.prefetchOnL1Hit = prefetchOnL1Hit
+        self.prefetchOnPrefetchHit = prefetchOnPrefetchHit
+        self.cleanBitsOnL1Promotion = cleanBitsOnL1Promotion
+        self.noPrefetchLatency = noPrefetchLatency
+        self.prefetchDepth = pDepth
+        self.finalMarkov = finalMarkov
+        self.markovUseRecency = markovUseRecency
+        self.prefetchAllMarkovSuccessors = prefetchAllSuccessors
+        self.limitRet = limitRet
+        self.newPBits = newPBits
+        self.onlyCall = onlyCall
+        self.onlyCallAndBackward = onlyCallAndBackward
+        self.depthOnlyCall = depthOnlyCall
+        self.prefetchOnlyCB = prefetchOnlyCB
+        self.prefetchOnlyUB = prefetchOnlyUB
+        self.useCompressedTagFilter = useCompressedTagFilter
+        self.compressedTagBits = compressedTagBits
+        self.forwardLoopExit = forwardLoopExit
+        self.allConditional = allConditional
+        self.maxChainTrackerEntries = maxChainTrackerEntries
 
 class TAGE_Inf_N(TAGE_SC_L_64KB):
     tage = TAGE_SC_L_TAGE_64KB(
@@ -237,7 +304,7 @@ class TAGE_Inf_N(TAGE_SC_L_64KB):
 
 
 class BPTageSCL(BranchPredictor):
-    def __init__(self, inf_tage :bool = False):
+    def __init__(self, inf_tage :bool = False, TAGELatency=4):
         super().__init__()
         if inf_tage:
             self.indirectBranchPred.itage.tagTableTagWidths = [
@@ -262,6 +329,17 @@ class BPTageSCL(BranchPredictor):
             self.conditionalBranchPred = TAGE_Inf_N()
         else:
             self.conditionalBranchPred = TAGE_SC_L_64KB()
+            self.conditionalBranchPred.latency = TAGELatency
+            # self.conditionalBranchPred = LocalBP(
+            #     latency = 0,
+            #     localPredictorSize = 16 * 1024,
+            #     localCtrBits = 2
+            # )
+
+            # self.overridingBranchPred = TAGE_SC_L_64KB(
+            #     latency = 4
+            # )
+            
 
     instShiftAmt = 2
     indirectBranchPred = ITTAGE()
@@ -321,7 +399,7 @@ class S_RdWrPort(RdWrPort):
         super().__init__()
         self.count = 8 * factor
 
-class S_IprPort(IprPort):
+class S_System_Unit(System_Unit):
     def __init__(self, factor):
         super().__init__()
         self.count = 1 * factor
@@ -340,7 +418,7 @@ class S_FUPool(FUPool):
             S_PredALU(factor=factor),
             S_WritePort(factor=factor),
             S_RdWrPort(factor=factor),
-            S_IprPort(factor=factor),
+            S_System_Unit(factor=factor),
         ]
 #-----------------------------------------------
 #-----------------------------------------------#

@@ -66,6 +66,9 @@ class L1DCache(Cache):
     tag_latency = 4
     data_latency = 4
     response_latency = 4
+    # tag_latency = 0
+    # data_latency = 0
+    # response_latency = 0
     mshrs = 16
     tgts_per_mshr = 20
     writeback_clean = False
@@ -89,6 +92,9 @@ class L15DCache(Cache):
     tag_latency = 9
     data_latency = 9
     response_latency = 9
+    # tag_latency = 0
+    # data_latency = 0
+    # response_latency = 0
     mshrs = 16
     tgts_per_mshr = 20
     writeback_clean = False
@@ -101,6 +107,9 @@ class L2Cache(Cache):
     tag_latency = 17
     data_latency = 17
     response_latency = 17
+    # tag_latency = 0
+    # data_latency = 0
+    # response_latency = 0
     mshrs = 256
     tgts_per_mshr = 16
     write_buffers = 256
@@ -111,6 +120,9 @@ class L3Cache(Cache):
     tag_latency = 51
     data_latency = 51
     response_latency = 51
+    # tag_latency = 0
+    # data_latency = 0
+    # response_latency = 0
     mshrs = 256
     tgts_per_mshr = 16
     write_buffers = 256
@@ -129,7 +141,7 @@ class GNRCacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
     Setting `useL15D` adds another 195KiB LD cache between L1 and L2 hence L1.5D
     Setting `fdp` adds the FDP prefetcher to the L1I cache.
     """
-    def __init__(self, fdp=False, useL15D=False):
+    def __init__(self, fdp=True, useL15D=False):
         super().__init__("", "", "")
         self._fdp = fdp
         self._useL15D = useL15D
@@ -151,9 +163,10 @@ class GNRCacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
 
             self.l1icaches[i].prefetcher = MultiPrefetcher()
             if self._fdp:
-               self.l1icaches[i].prefetcher.prefetchers.append(
-                   FetchDirectedPrefetcher(use_virtual_addresses=True, cpu=cpu.core),
-                )
+               pf = FetchDirectedPrefetcher(use_virtual_addresses=True, cpu=cpu.core)
+               pf.registerCache(self.l1icaches[i]) # <--- We need to register the cache to enable the probing before issuing
+               self.l1icaches[i].prefetcher.prefetchers.append(pf)
+
             self.l1icaches[i].prefetcher.prefetchers.append(
                     TaggedPrefetcher(use_virtual_addresses=True)
                 )
@@ -318,4 +331,3 @@ class CacheHierarchyGiant(PrivateL1CacheHierarchy):
                 cpu.connect_interrupt(int_req_port, int_resp_port)
             else:
                 cpu.connect_interrupt()
-
