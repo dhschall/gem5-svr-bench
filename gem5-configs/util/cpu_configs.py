@@ -29,6 +29,7 @@ from m5.objects import (
     TAGE_SC_L_TAGE_64KB,
     ITTAGE,
     BranchPredictor,
+    IQUnit,
 )
 from m5.objects.FuncUnit import *
 from m5.objects.FuncUnitConfig import *
@@ -99,7 +100,10 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
     cpu.squashWidth = 3 * width * factor
     # cpu.squashWidth = 12
 
-    cpu.fuPool = S_FUPool()
+    cpu.instQueues = IQUnit(
+        numEntries = 576 * factor,
+        fuPool = S_FUPool()
+    )
 
 
     cpu.fetchBufferSize = 64
@@ -110,7 +114,7 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
     # Set size if relevant buffers
     cpu.numFTQEntries = 16 * factor
     cpu.numROBEntries = 576 * factor
-    cpu.numIQEntries = 576 * factor
+    # cpu.numIQEntries = 576 * factor
     cpu.LQEntries = 189 * factor
     cpu.SQEntries = 120 * factor
     cpu.LFSTSize = 1024 * factor
@@ -250,7 +254,7 @@ class S_RdWrPort(RdWrPort):
         super().__init__()
         self.count = 8 * factor
 
-class S_IprPort(IprPort):
+class S_SystemPort(System_Unit):
     def __init__(self, factor):
         super().__init__()
         self.count = 1 * factor
@@ -269,7 +273,7 @@ class S_FUPool(FUPool):
             S_PredALU(factor=factor),
             S_WritePort(factor=factor),
             S_RdWrPort(factor=factor),
-            S_IprPort(factor=factor),
+            S_SystemPort(factor=factor),
         ]
 #-----------------------------------------------
 #-----------------------------------------------#
