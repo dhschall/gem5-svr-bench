@@ -103,6 +103,62 @@ parser.add_argument(
     help="Enable FDP",
 )
 
+parser.add_argument(
+    "--twolevelbtb",
+    action="store_true",
+    default=False,
+    help="Enable two level BTB",
+)
+
+parser.add_argument(
+    "--factor",
+    type=int,
+    default=1,
+    help="Factor for ROB, IQ, LQ, and SQ sizes",
+)
+
+
+parser.add_argument(
+    "--numFTQEntries",
+    type=int,
+    default=24,
+    help="Number of FTQ entries",
+)
+
+parser.add_argument(
+    "--width",
+    type=int,
+    default=8,
+    help="Width of the CPU",
+)
+
+parser.add_argument(
+    "--takenPredPerCycle",
+    type=int,
+    default=1,
+    help="Maximum number of taken predictions per cycle",
+)
+parser.add_argument(
+    "--feParallelism",
+    type=int,
+    default=2,
+    help="Maximum number of taken predictions per cycle",
+)
+parser.add_argument(
+    "--fetchDataInFTQ",
+    action="store_true",
+    default=False,
+    help="Maximum number of taken predictions per cycle",
+)
+
+parser.add_argument(
+    "--modelBpuLatency",
+    action="store_true",
+    default=False,
+    help="Model branch predictor latency",
+)
+
+
 isa_choices = {
     "X86": ISA.X86,
     "Arm": ISA.ARM,

@@ -170,3 +170,80 @@ spec_workloads |= {
         "args": f"1255432124 234923".split(),
     }
 }
+
+
+
+
+## 508.namd_r ------------------
+rundir = f"{SPECDIR}/508.namd_r/{TEST}"
+spec_workloads |= {
+    "508.namd_r.apoa1": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/namd_r_base.{BIN}",
+        "args": f"--input {rundir}/apoa1.input --output apoa1.ref.output --iterations 65".split(),
+    }
+}
+
+## 510.parest_r ------------------
+rundir = f"{SPECDIR}/510.parest_r/{TEST}"
+spec_workloads |= {
+    "510.parest_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/parest_r_base.{BIN}",
+        "args": f"{rundir}/ref.prm".split(),
+    }
+}
+
+## 511.povray_r ------------------
+# Copy content of run directory to wkdir
+rundir = f"{SPECDIR}/511.povray_r/{TEST}"
+spec_workloads |= {
+    "511.povray_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/povray_r_base.{BIN}",
+        "args": f"SPEC-benchmark-ref.ini".split(),
+        # "args": f"--help".split(),
+    }
+}
+
+## 519.lbm_r ------------------
+rundir = f"{SPECDIR}/519.lbm_r/{TEST}"
+spec_workloads |= {
+    "519.lbm_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/lbm_r_base.{BIN}",
+        "args": f"3000 {rundir}/reference.dat 0 0 {rundir}/100_100_130_ldc.of".split(),
+    }
+}
+
+## 526.blender_r ------------------
+rundir = f"{SPECDIR}/526.blender_r/{TEST}"
+spec_workloads |= {
+    "526.blender_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/blender_r_base.{BIN}",
+        "args": f"{rundir}/sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a".split(),
+    }
+}
+
+
+## 538.imagick_r ------------------
+rundir = f"{SPECDIR}/538.imagick_r/{TEST}"
+spec_workloads |= {
+    "538.imagick_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/imagick_r_base.{BIN}",
+        "args": f"-limit disk 0 {rundir}/refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga".split(),
+    }
+}
+
+## 544.nab_r ------------------
+## Need to copy 1am0 into the run folder
+rundir = f"{SPECDIR}/544.nab_r/{TEST}"
+spec_workloads |= {
+    "544.nab_r.ref": {
+        "rundir": rundir,
+        "cmd": f"{rundir}/nab_r_base.{BIN}",
+        "args": f"1am0 1122214447 122".split(),
+    }
+}

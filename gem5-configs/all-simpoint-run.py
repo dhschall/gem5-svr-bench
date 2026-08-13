@@ -82,12 +82,32 @@ processor = SimpleProcessor(
 )
 cpu = processor.get_cores()[-1].core
 
-config_GNR(cpu, fdp=args.fdp)
+config_GNR(cpu, fdp=args.fdp,
+           factor=args.factor, width=args.width,
+           takenPredPerCycle=args.takenPredPerCycle,
+           feParallelism=args.feParallelism,
+           fetchDataInFTQ=args.fetchDataInFTQ,
+           numFTQEntries=args.numFTQEntries)
+
+cache_hierarchy = GNRCacheHierarchy(fdp=args.fdp)
 
 
-#set branch predictor
-cpu.branchPred = BPTageSCL()
-cpu.branchPred.btb = BTB()
+if args.modelBpuLatency:
+    ## Model the branch predictor override latency
+    # with 2 cycles TAGE and ITTAGE
+    # and 3 cycles BTB
+    cpu.branchPred = BPTageSCL(TAGELatency=2, ITTAGELatency=2)
+
+    cpu.branchPred.btb = TwoLevelBTB()
+
+    cpu.modelOverrideFalsePath=True
+
+else:
+    # No predictor latency. BP and BTB lookup instantly
+    cpu.branchPred = BPTageSCL(TAGELatency=0, ITTAGELatency=0)
+
+    cpu.branchPred.btb = OneLevelBTB()
+
 
 simpoint_info = SimpointDirectoryResource(
     local_path=Path(f"{args.simpoint_dir}/{args.workload}"),
@@ -108,7 +128,7 @@ if spec:
         clk_freq="3GHz",
         processor=processor,
         memory=memory,
-        cache_hierarchy=GNRCacheHierarchy(),
+        cache_hierarchy=cache_hierarchy,
     )
 
 
@@ -124,7 +144,7 @@ else:
         clk_freq="3GHz",
         processor=processor,
         memory=memory,
-        cache_hierarchy=GNRCacheHierarchy(),
+        cache_hierarchy=cache_hierarchy,
         # # The ArmBoard requires a `release` to be specified. This adds all the
         #     # extensions or features to the system. We are setting this to Armv8
         #     # (ArmDefaultRelease) in this example config script.

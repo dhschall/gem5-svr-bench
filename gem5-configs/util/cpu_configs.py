@@ -25,6 +25,9 @@ This file contains utility functions for configuring the CPU core
 
 from m5.objects import (
     SimpleBTB,
+    MultiLevelBTB,
+    BTBLevel,
+    LocalBP,
     TAGE_SC_L_64KB,
     TAGE_SC_L_TAGE_64KB,
     ITTAGE,
@@ -71,14 +74,15 @@ def set_width(cpu_, width):
 
 
 
-def config_GNR(cpu, fdp=True, factor=1, width=8):
+def config_GNR(cpu, fdp=True, factor=1, width=8, takenPredPerCycle=1, feParallelism=2, fetchDataInFTQ=False, numFTQEntries=24):
     """
     Configuration for Intel Xeon Granit Rapid
     8-wide, 576-entry ROB
     """
 
     # Pipeline delays
-    cpu.fetchToDecodeDelay = 3
+    cpu.fetchToDecodeDelay = 8
+    cpu.decodeToFetchDelay = 2
     cpu.decodeToRenameDelay = 2
     cpu.renameToIEWDelay = 3
     cpu.issueToExecuteDelay = 1
@@ -97,7 +101,7 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
     cpu.wbWidth = 2*width
     cpu.commitWidth = 2*width
     # cpu.commitWidth = 12
-    cpu.squashWidth = 3 * width * factor
+    # cpu.squashWidth = 3 * width * factor
     # cpu.squashWidth = 12
 
     cpu.instQueues = IQUnit(
@@ -119,6 +123,14 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
     cpu.SQEntries = 120 * factor
     cpu.LFSTSize = 1024 * factor
     cpu.SSITSize = "1024"
+
+
+    cpu.maxTakenPredPerCycle = takenPredPerCycle
+    cpu.maxFTPerCycle = 4 * takenPredPerCycle
+    cpu.maxOutstandingPrefetches = 2 * feParallelism
+    cpu.maxOutstandingTranslations = 2 * feParallelism
+    cpu.maxPrefetchesPerCycle = feParallelism
+    cpu.enableFBinFTQ = fetchDataInFTQ
 
 
     #tune mmu
@@ -148,7 +160,10 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
         cpu.minInstSize = 4
 
         # Set size of relevant buffers
-        cpu.numFTQEntries = 24
+        cpu.numFTQEntries = numFTQEntries
+
+
+
 
 
 #############################################################
@@ -156,10 +171,28 @@ def config_GNR(cpu, fdp=True, factor=1, width=8):
 ############################################################
 
 
-class BTB(SimpleBTB):
+class OneLevelBTB(SimpleBTB):
     numEntries = 16 * 1024
     tagBits = 16
     associativity = 8
+
+
+class TwoLevelBTB(MultiLevelBTB):
+    levels = [
+        BTBLevel(
+            numEntries=256,
+            associativity=8,
+            latency=0,
+            inclusive=True
+        ),
+        BTBLevel(
+            numEntries=16 * 1024,
+            associativity=8,
+            latency=3,
+            inclusive=False
+        )
+    ]
+
 
 class TAGE_Inf_N(TAGE_SC_L_64KB):
     tage = TAGE_SC_L_TAGE_64KB(
@@ -170,7 +203,7 @@ class TAGE_Inf_N(TAGE_SC_L_64KB):
 
 
 class BPTageSCL(BranchPredictor):
-    def __init__(self, inf_tage :bool = False):
+    def __init__(self, inf_tage :bool = False, TAGELatency=0, ITTAGELatency=0):
         super().__init__()
         if inf_tage:
             self.indirectBranchPred.itage.tagTableTagWidths = [
@@ -195,9 +228,12 @@ class BPTageSCL(BranchPredictor):
             self.conditionalBranchPred = TAGE_Inf_N()
         else:
             self.conditionalBranchPred = TAGE_SC_L_64KB()
+            self.conditionalBranchPred.defaultLatency = TAGELatency
+
+        self.indirectBranchPred = ITTAGE()
+        self.indirectBranchPred.latency = ITTAGELatency
 
     instShiftAmt = 2
-    indirectBranchPred = ITTAGE()
     requiresBTBHit = True
     updateBTBAtSquash = True
 

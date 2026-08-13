@@ -151,9 +151,14 @@ class GNRCacheHierarchy(PrivateL1PrivateL2CacheHierarchy):
 
             self.l1icaches[i].prefetcher = MultiPrefetcher()
             if self._fdp:
-               self.l1icaches[i].prefetcher.prefetchers.append(
-                   FetchDirectedPrefetcher(use_virtual_addresses=True, cpu=cpu.core),
-                )
+                pf = FetchDirectedPrefetcher(
+                    use_virtual_addresses=True,
+                    prefetch_only_override=True,
+                    cpu=cpu.core,
+                    )
+                pf.registerCache(self.l1icaches[i])
+                self.l1icaches[i].prefetcher.prefetchers.append(pf)
+
             self.l1icaches[i].prefetcher.prefetchers.append(
                     TaggedPrefetcher(use_virtual_addresses=True)
                 )
